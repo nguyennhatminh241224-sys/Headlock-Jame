@@ -525,3 +525,56 @@ if (crosshairSize && crosshairColor) {
 
 startExpireWatcher();
 autoLogin();
+document.addEventListener("DOMContentLoaded", () => {
+    const crosshairSizeInput = document.getElementById("crosshairSize");
+    const crosshairColorInput = document.getElementById("crosshairColor");
+    const btnOverlayOn = document.getElementById("btnOverlayOn");
+    const btnOverlayOff = document.getElementById("btnOverlayOff");
+    const crosshairDot = document.getElementById("crosshairDot");
+
+    // Hàm đồng bộ trạng thái tâm ảo sang Android Native
+    function updateNativeCrosshair() {
+        const size = crosshairSizeInput.value;
+        const color = crosshairColorInput.value;
+
+        // Cập nhật giao diện xem trước (Preview) ngay trên Web
+        if (crosshairDot) {
+            crosshairDot.style.width = size + "px";
+            crosshairDot.style.height = size + "px";
+            crosshairDot.style.backgroundColor = color;
+        }
+
+        // Kiểm tra xem ứng dụng đang chạy trong môi trường WebView Android hay không
+        if (typeof AndroidBridge !== "undefined" && AndroidBridge.updateCrosshair) {
+            // Gửi dữ liệu size và color sang mã nguồn Java/Kotlin
+            AndroidBridge.updateCrosshair(parseInt(size), color);
+        }
+    }
+
+    // Lắng nghe sự kiện thay đổi cấu hình từ người dùng
+    crosshairSizeInput.addEventListener("input", updateNativeCrosshair);
+    crosshairColorInput.addEventListener("input", updateNativeCrosshair);
+
+    // Xử lý sự kiện nhấn nút Bật/Tắt tâm ảo overlay
+    if (btnOverlayOn) {
+        btnOverlayOn.addEventListener("click", () => {
+            btnOverlayOff.classList.remove("active");
+            btnOverlayOn.classList.add("active");
+            
+            if (typeof AndroidBridge !== "undefined" && AndroidBridge.setCrosshairVisibility) {
+                AndroidBridge.setCrosshairVisibility(true); // Gọi lệnh hiện tâm ngoài game
+            }
+        });
+    }
+
+    if (btnOverlayOff) {
+        btnOverlayOff.addEventListener("click", () => {
+            btnOverlayOn.classList.remove("active");
+            btnOverlayOff.classList.add("active");
+            
+            if (typeof AndroidBridge !== "undefined" && AndroidBridge.setCrosshairVisibility) {
+                AndroidBridge.setCrosshairVisibility(false); // Gọi lệnh ẩn tâm ngoài game
+            }
+        });
+    }
+});
