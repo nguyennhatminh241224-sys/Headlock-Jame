@@ -415,9 +415,51 @@ actions.forEach((card) => {
 
     if (action === "crosshair") {
       openModal(crosshairModal);
-      showToast("Mở tâm ảo mô phỏng");
+      showToast("Mở tâm ảo");
       return;
     }
+
+    // ================= XỬ LÝ OVERLAY TÂM ẢO VÀO GAME =================
+const btnToggleOverlay = document.getElementById("btnToggleOverlay");
+const crosshairFeatureCard = document.querySelector('[data-action="crosshair"]');
+const crosshairStatusText = document.getElementById("crosshairStatus");
+
+if (btnToggleOverlay) {
+  btnToggleOverlay.addEventListener("click", () => {
+    const isActive = btnToggleOverlay.classList.contains("active-overlay");
+    const size = parseInt(crosshairSize.value) || 34;
+    const color = crosshairColor.value || "#00ff88";
+
+    if (!isActive) {
+      // 1. Gửi lệnh yêu cầu bật Overlay sang App APK Android
+      if (window.AndroidBridge && window.AndroidBridge.toggleOverlay) {
+        // Gọi hàm hệ thống của Android
+        window.AndroidBridge.toggleOverlay(true, size, color);
+      } else {
+        alert("Vui lòng chạy trong ứng dụng Android APK để bật Overlay vào game!");
+        return;
+      }
+
+      btnToggleOverlay.classList.add("active-overlay");
+      btnToggleOverlay.innerText = "✕ TẮT OVERLAY GAME";
+      btnToggleOverlay.style.background = "#ff4a4a";
+      if (crosshairFeatureCard) crosshairFeatureCard.classList.add("active");
+      if (crosshairStatusText) crosshairStatusText.innerText = "Đang bật Overlay";
+      closeModal(crosshairModal);
+    } else {
+      // 2. Gửi lệnh tắt Overlay sang App APK Android
+      if (window.AndroidBridge && window.AndroidBridge.toggleOverlay) {
+        window.AndroidBridge.toggleOverlay(false, 0, "");
+      }
+
+      btnToggleOverlay.classList.remove("active-overlay");
+      btnToggleOverlay.innerText = "KÍCH HOẠT OVERLAY VÀO GAME";
+      btnToggleOverlay.style.background = "#00ff88";
+      if (crosshairFeatureCard) crosshairFeatureCard.classList.remove("active");
+      if (crosshairStatusText) crosshairStatusText.innerText = "Bấm để cấu hình & bật";
+    }
+  });
+}
 
     if (action === "aimbody") {
       showToast(card.classList.contains("active") ? "Đã bật AIMBODY" : "Đã tắt AIMBODY");
