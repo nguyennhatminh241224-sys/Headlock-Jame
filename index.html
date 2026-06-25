@@ -176,31 +176,29 @@
   </section>
 
   <section class="modal hidden" id="crosshairModal" aria-hidden="true">
-    <div class="modal-card">
-      <button class="close" type="button" data-close>×</button>
-      <h3>⊕ Tâm ảo mô phỏng</h3>
+    <div class="modal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h3>⊕ Cấu hình tâm ảo Over-Game</h3>
 
-      <div class="crosshair-preview">
-        <div id="crosshairDot" class="crosshair-dot"></div>
-      </div>
+      <div class="crosshair-preview">
+        <div id="crosshairDot" class="crosshair-dot"></div>
+      </div>
 
-      <label class="range-label">
-        Kích thước
-        <input id="crosshairSize" type="range" min="12" max="80" value="34">
-      </label>
+      <label class="range-label">
+        Kích thước
+        <input id="crosshairSize" type="range" min="12" max="80" value="34">
+      </label>
 
-      <label class="range-label">
-        Màu tâm
-        <input id="crosshairColor" type="color" value="#00ff88">
-      </label>
+      <label class="range-label">
+        Màu tâm
+        <input id="crosshairColor" type="color" value="#00ff88">
+      </label>
 
-      <p class="license">Sẽ Sớm Ra Mắt Tính Năng Này Trong Game</p>
-    </div>
-  </section>
-
-  <div class="overlay hidden" id="overlay"></div>
-  <div class="toast" id="toast"></div>
-
-  <script src="script.js"></script>
+      <div class="switch-row" style="margin-top: 15px;">
+        <button class="pill" id="btnOverlayOff" type="button">TẮT TÂM</button>
+        <button class="pill active" id="btnOverlayOn" type="button">BẬT TÂM</button>
+      </div>
+    </div>
+  </section>
 </body>
 </html>
