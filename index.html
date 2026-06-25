@@ -14,8 +14,8 @@
   <section class="gate" id="passwordScreen">
     <div class="gate-card">
       <div class="brand-logo">
-    <img src="logo.png" alt="Headlock Jame">
-</div>
+        <img src="logo.png" alt="Headlock Jame">
+      </div>
 
       <div class="badge">Secure Access</div>
       <h1>HEADLOCK JAME</h1>
@@ -25,11 +25,10 @@
         <label for="passwordInput">Nhập mật khẩu hoặc key online</label>
         <div class="input-row">
           <input id="passwordInput" type="password" placeholder="Password / Key" autocomplete="off" required />
-          <button id="togglePassword" type="button" aria-label="Hiện/ẩn mật khẩu">👁</button>
+          <button id="togglePassword" type="button">👁</button>
         </div>
 
         <div id="passwordError" class="message">Zalo hỗ trợ: 0333635135</div>
-
         <button class="primary-btn" type="submit">UNLOCK PANEL</button>
       </form>
 
@@ -48,15 +47,15 @@
         <h2>HEADLOCK JAME</h2>
         <p>BY JAME FF</p>
       </div>
-      <button class="menu-btn" id="menuBtn" type="button" aria-label="Mở info">
+      <button class="menu-btn" id="menuBtn" type="button">
         <span></span><span></span><span></span>
       </button>
     </header>
 
     <section class="hero-card">
       <div class="hero-logo">
-    <img src="logo.png" alt="Headlock Jame">
-</div>
+        <img src="logo.png" alt="Headlock Jame">
+      </div>
       <div>
         <p class="small">Premium Panel</p>
         <h1>Headlock Jame</h1>
@@ -69,24 +68,35 @@
         <span>🎯</span>
         <strong>REG FILES</strong>
       </button>
+
       <button class="feature-card" data-action="boost" type="button">
         <span>🚀</span>
         <strong>BOST RAM</strong>
         <em>Dọn bộ nhớ giả lập</em>
       </button>
+
       <button class="feature-card" data-action="headlock" type="button">
         <span>💀</span>
         <strong>HEADLOCK</strong>
         <em>Jame FF mode</em>
       </button>
+
       <button class="feature-card" data-action="fix" type="button">
         <span>⚙️</span>
         <strong>FIX RUNG</strong>
         <em>Ổn định thao tác</em>
       </button>
+
+      <button class="feature-card" data-action="aimbody" type="button">
         <span>🎯</span>
         <strong>AIMBODY</strong>
         <em>Jame FF mode</em>
+      </button>
+
+      <button class="feature-card" data-action="crosshair" type="button">
+        <span>⊕</span>
+        <strong>TÂM ẢO</strong>
+        <em>Mô phỏng trong app</em>
       </button>
     </section>
 
@@ -162,6 +172,29 @@
         <strong>✓ BOST RAM thành công!</strong>
         <button class="modal-btn success" type="button" data-close>Đóng</button>
       </div>
+    </div>
+  </section>
+
+  <section class="modal hidden" id="crosshairModal" aria-hidden="true">
+    <div class="modal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h3>⊕ Tâm ảo mô phỏng</h3>
+
+      <div class="crosshair-preview">
+        <div id="crosshairDot" class="crosshair-dot"></div>
+      </div>
+
+      <label class="range-label">
+        Kích thước
+        <input id="crosshairSize" type="range" min="12" max="80" value="34">
+      </label>
+
+      <label class="range-label">
+        Màu tâm
+        <input id="crosshairColor" type="color" value="#00ff88">
+      </label>
+
+      <p class="license">Chỉ là bản preview trong app, không can thiệp vào game.</p>
     </div>
   </section>
 
