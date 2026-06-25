@@ -9,7 +9,7 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const OFFLINE_KEYS = [
+const PASSWORDS.includes(...)
   { key: "0333635135", expiresAt: "2026-07-25T23:59:59+07:00" },
   { key: "JameFF", expiresAt: "2026-07-25T23:59:59+07:00" },
   { key: "VIP2026", expiresAt: "2026-12-31T23:59:59+07:00" },
@@ -154,13 +154,34 @@ async function loginWithValue(value) {
     throw new Error(result.message || "Key không hợp lệ");
   }
 
-  if (PASSWORDS.includes(value)) {
-    localStorage.setItem(STORAGE.KEY, value);
-    unlockApp("Đăng nhập offline thành công");
-    return;
-  }
+const foundKey = OFFLINE_KEYS.find(item => item.key === value);
 
-  throw new Error("Sai mật khẩu. Vui lòng thử lại.");
+if (foundKey) {
+
+    if (foundKey.expiresAt) {
+
+        const now = new Date();
+        const expire = new Date(foundKey.expiresAt);
+
+        if (now > expire) {
+            throw new Error("Key đã hết hạn.");
+        }
+
+    }
+
+    localStorage.setItem(STORAGE.KEY, value);
+
+    unlockApp(
+        "Key hết hạn: " +
+        (foundKey.expiresAt
+            ? formatDate(foundKey.expiresAt)
+            : "Vĩnh viễn")
+    );
+
+    return;
+}
+
+throw new Error("Sai mật khẩu.");
 }
 
 async function autoLogin() {
