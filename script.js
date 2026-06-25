@@ -165,33 +165,63 @@ function lockApp() {
 }
 
 async function loginWithValue(value) {
-  if (API_BASE && API_BASE.startsWith("http")) {
-    setLoginMessage("", "Đang kiểm tra key online...");
+  const key = value.trim().toUpperCase();
 
-    const result = await loginWithValue(value);
+  if (!PASSWORDS[key]) {
+    throw new Error("Key không hợp lệ.");
+  }
 
-    if (result.success) {
-      localStorage.setItem(STORAGE.KEY, value);
+  const info = PASSWORDS[key];
+  const expire = Date.now() + info.days * 24 * 60 * 60 * 1000;
 
-      if (result.expiresAt) {
-        localStorage.setItem(STORAGE.EXPIRE, new Date(result.expiresAt).getTime());
-      }
+  localStorage.setItem(STORAGE.KEY, key);
+  localStorage.setItem(STORAGE.EXPIRE, expire);
 
-      unlockApp(`
+  unlockApp(`
 ━━━━━━━━━━━━━━━━━━
 
 🔓 LOGIN SUCCESS
 
-🔑 Key : ${value}
+🔑 Key : ${key}
 
 🕒 Hết hạn lúc :
 
-${formatDate(result.expiresAt)}
+${formatDate(expire)}
 
-🎟 Slot : ${result.usedSlots || 0}/${result.maxSlots || "?"}
+🎟 Slot : ${info.slot}
 
 ━━━━━━━━━━━━━━━━━━
 `);
+}
+
+function autoLogin() {
+  const savedKey = localStorage.getItem(STORAGE.KEY);
+
+  if (!savedKey || sessionStorage.getItem(STORAGE.SESSION) !== "true") {
+    return;
+  }
+
+  const expire = Number(localStorage.getItem(STORAGE.EXPIRE));
+
+  if (!expire || Date.now() > expire) {
+    lockApp();
+    return;
+  }
+
+  unlockApp(`
+━━━━━━━━━━━━━━━━━━
+
+🔓 LOGIN SUCCESS
+
+🔑 Key : ${savedKey}
+
+🕒 Hết hạn lúc :
+
+${formatDate(expire)}
+
+━━━━━━━━━━━━━━━━━━
+`);
+}
 
       return;
     }
