@@ -172,17 +172,18 @@ async function loginWithValue(value) {
 
   if (PASSWORDS[value]) {
 
-   const days = PASSWORDS[value];
+    const info = PASSWORDS[value];
 
-const expireTime =
-    Date.now() + days * 24 * 60 * 60 * 1000;
+    const expireTime =
+        Date.now() +
+        info.days * 24 * 60 * 60 * 1000;
 
-    localStorage.setItem(STORAGE.KEY, value);
-    localStorage.setItem(STORAGE.EXPIRE, expireTime);
+    localStorage.setItem(STORAGE.KEY,value);
+    localStorage.setItem(STORAGE.EXPIRE,expireTime);
 
-   const expireDate = new Date(expireTime);
+    const expireDate = new Date(expireTime);
 
-unlockApp(`
+    unlockApp(`
 ━━━━━━━━━━━━━━━━━━
 
 🔓 LOGIN SUCCESS
@@ -190,6 +191,8 @@ unlockApp(`
 🔑 Key : ${value}
 
 ⏳ Thời hạn : ${info.days} ngày
+
+🎟 Slot : ${info.slot}
 
 🕒 Hết hạn lúc :
 
