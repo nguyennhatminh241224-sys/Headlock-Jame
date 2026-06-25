@@ -10,8 +10,8 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = {
-    "VIP2026": 1,    // 1 ngày
-    };
+  "VIP2026": 1,      // 1 ngày
+};
 
 const STORAGE = {
   DEVICE: "headlock-jame-device-id",
@@ -135,10 +135,10 @@ function lockApp() {
   logoutBtn.classList.add("hidden");
   passwordInput.value = "";
 
-  sessionStorage.removeItem(STORAGE.SESSION);
-  localStorage.removeItem(STORAGE.KEY);
-  setLoginMessage("", "Zalo hỗ trợ: 0333635135");
-}
+sessionStorage.removeItem(STORAGE.SESSION);
+localStorage.removeItem(STORAGE.KEY);
+localStorage.removeItem(STORAGE.EXPIRE);
+setLoginMessage("", "Zalo hỗ trợ: 0333635135");
 
 async function loginWithValue(value) {
   if (API_BASE && API_BASE.startsWith("http")) {
@@ -178,22 +178,22 @@ const expireTime =
 async function autoLogin() {
   const savedKey = localStorage.getItem(STORAGE.KEY);
 
-  const expire = Number(localStorage.getItem(STORAGE.EXPIRE));
-
-if (!expire || Date.now() > expire) {
-    localStorage.removeItem(STORAGE.KEY);
-    sessionStorage.removeItem(STORAGE.SESSION);
-localStorage.removeItem(STORAGE.KEY);
-localStorage.removeItem(STORAGE.EXPIRE);
-    return;
-}
-
   if (!savedKey || sessionStorage.getItem(STORAGE.SESSION) !== "true") {
     return;
   }
 
+  const expire = Number(localStorage.getItem(STORAGE.EXPIRE));
+
+  if (!expire || Date.now() > expire) {
+    lockApp();
+    return;
+  }
+
   try {
-    await loginWithValue(savedKey);
+    unlockApp(
+      "Key hết hạn: " +
+      new Date(expire).toLocaleString("vi-VN")
+    );
   } catch {
     lockApp();
   }
