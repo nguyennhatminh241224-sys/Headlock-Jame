@@ -158,12 +158,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-mongoose.connect(process.env.MONGODB_URI)
+
   .then(() => {
-    console.log('MongoDB connected');
+    
     app.listen(PORT, () => console.log(`Server running on ${PORT}`));
   })
   .catch(err => {
-    console.error('MongoDB connection error:', err.message);
+    
     process.exit(1);
   });
