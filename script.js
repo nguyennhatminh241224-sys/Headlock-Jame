@@ -39,7 +39,7 @@ if (MAINTENANCE_MODE) {
   throw new Error("Maintenance");
 }
 
-const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
+const GET_KEY_FREE_URL = "https://link4m.net/lnZEeK4t";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const STORAGE = {
