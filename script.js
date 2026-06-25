@@ -180,10 +180,23 @@ const expireTime =
     localStorage.setItem(STORAGE.KEY, value);
     localStorage.setItem(STORAGE.EXPIRE, expireTime);
 
-    unlockApp(
-        "Key hết hạn: " +
-        new Date(expireTime).toLocaleString("vi-VN")
-    );
+   const expireDate = new Date(expireTime);
+
+unlockApp(`
+━━━━━━━━━━━━━━━━━━
+
+🔓 LOGIN SUCCESS
+
+🔑 Key : ${value}
+
+⏳ Thời hạn : ${info.days} ngày
+
+🕒 Hết hạn lúc :
+
+${expireDate.toLocaleString("vi-VN")}
+
+━━━━━━━━━━━━━━━━━━
+`);
 
     return;
 }
