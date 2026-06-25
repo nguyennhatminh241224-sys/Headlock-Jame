@@ -1,12 +1,6 @@
 // ================= HEADLOCK JAME CONFIG =================
-// Nếu dùng API online riêng, đổi API_BASE thành link server của bạn.
-// Ví dụ: const API_BASE = "https://headlock-jame-api.onrender.com";
-// Nếu để rỗng "", web sẽ dùng mật khẩu offline trong PASSWORDS.
 const API_BASE = "";
-
-// Link Get Key Free. Đổi link này thành trang get key của bạn.
 const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
-
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = [
@@ -16,7 +10,16 @@ const PASSWORDS = [
   "Headlock"
 ];
 
-const EXPIRE_DATE = "2026-07-25";
+// Hết hạn: 26/06/2026 23:59:59
+const EXPIRE_CODE = "MjAyNi0wNy0yNVQyMzo1OTo1OQ==";
+
+function getExpireDateTime() {
+  try {
+    return atob(EXPIRE_CODE);
+  } catch {
+    return "1970-01-01T00:00:00";
+  }
+}
 
 const STORAGE = {
   DEVICE: "headlock-jame-device-id",
@@ -142,69 +145,40 @@ function lockApp() {
   setLoginMessage("", "Zalo hỗ trợ: 0333635135");
 }
 
-if (PASSWORDS.includes(value)) {
+async function loginWithValue(value) {
+  if (API_BASE && API_BASE.startsWith("http")) {
+    setLoginMessage("", "Đang kiểm tra key online...");
+    const result = await checkKeyOnline(value);
 
-    if (new Date() > new Date(EXPIRE_DATE + "T23:59:59")) {
-        throw new Error("Key đã hết hạn.");
-    }
-
-    localStorage.setItem(STORAGE.KEY, value);
-    unlockApp("Hết hạn: " + EXPIRE_DATE);
-    return;
-}
-
-throw new Error("Sai mật khẩu.");
+    if (result.success) {
+      localStorage.setItem(STORAGE.KEY, value);
+      unlockApp("Key hết hạn: " + formatDate(result.expiresAt));
+      return;
     }
 
     throw new Error(result.message || "Key không hợp lệ");
   }
 
-const foundKey = PASSWORDS.find(item => item.key === value);
+  if (PASSWORDS.includes(value)) {
+    const expireDateTime = getExpireDateTime();
+    const expire = new Date(expireDateTime);
 
-if (foundKey) {
+    if (Number.isNaN(expire.getTime())) {
+      throw new Error("Ngày giờ hết hạn không hợp lệ.");
+    }
 
-    if (foundKey.expiresAt && new Date() > new Date(foundKey.expiresAt)) {
-        throw new Error("Key đã hết hạn.");
+    if (new Date() > expire) {
+      localStorage.removeItem(STORAGE.KEY);
+      sessionStorage.removeItem(STORAGE.SESSION);
+      throw new Error("Key đã hết hạn.");
     }
 
     localStorage.setItem(STORAGE.KEY, value);
-
-    unlockApp(
-        "Key hết hạn: " +
-        (foundKey.expiresAt ? formatDate(foundKey.expiresAt) : "Vĩnh viễn")
-    );
-
+    unlockApp("Hết hạn: " + formatDate(expireDateTime));
     return;
-}
+  }
 
-throw new Error("Sai mật khẩu.");
-
-if (foundKey) {
-
-    if (foundKey.expiresAt) {
-
-        const now = new Date();
-        const expire = new Date(foundKey.expiresAt);
-
-        if (now > expire) {
-            throw new Error("Key đã hết hạn.");
-        }
-
-    }
-
-    localStorage.setItem(STORAGE.KEY, value);
-
-    unlockApp(
-        "Key hết hạn: " +
-        (foundKey.expiresAt
-            ? formatDate(foundKey.expiresAt)
-            : "Vĩnh viễn")
-    );
-
-    return;
-}
-
-throw new Error("Sai mật khẩu.");
+  throw new Error("Sai mật khẩu. Vui lòng thử lại.");
 }
 
 async function autoLogin() {
@@ -292,9 +266,15 @@ function openModal(modal) {
 function closeModal(modal) {
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
-  if (!versionModal.classList.contains("hidden") || !boostModal.classList.contains("hidden") || infoPanel.classList.contains("active")) {
+
+  if (
+    !versionModal.classList.contains("hidden") ||
+    !boostModal.classList.contains("hidden") ||
+    infoPanel.classList.contains("active")
+  ) {
     return;
   }
+
   overlay.classList.add("hidden");
 }
 
@@ -364,7 +344,10 @@ actions.forEach((card) => {
 
 document.querySelectorAll(".version-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".version-btn").forEach((item) => item.classList.remove("active"));
+    document.querySelectorAll(".version-btn").forEach((item) =>
+      item.classList.remove("active")
+    );
+
     btn.classList.add("active");
 
     localStorage.setItem(STORAGE.VERSION, btn.dataset.version);
