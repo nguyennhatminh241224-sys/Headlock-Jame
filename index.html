@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Headlock Jame</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-glow glow-one"></div>
+  <div class="bg-glow glow-two"></div>
+
+  <section id="passwordScreen" class="password-screen" aria-label="Màn hình đăng nhập">
+    <div class="login-card glass-card">
+      <div class="lock-icon">🔒</div>
+      <div class="badge">Secure Access</div>
+      <h1>HEADLOCK JAME</h1>
+      <p class="login-subtitle">BY JAME FF</p>
+
+      <form id="passwordForm" class="password-form">
+        <label for="passwordInput">Nhập mật khẩu để tiếp tục</label>
+        <div class="password-box">
+          <input id="passwordInput" type="password" placeholder="Password" autocomplete="current-password" required />
+          <button id="togglePassword" type="button" aria-label="Hiện mật khẩu">👁</button>
+        </div>
+        <div id="passwordError" class="password-error" aria-live="polite"></div>
+        <button class="login-btn" type="submit">UNLOCK PANEL</button>
+      </form>
+
+      <small>Password mặc định: 0333635135</small>
+    </div>
+  </section>
+
+  <main id="mainApp" class="app locked">
+    <button class="back-btn" type="button" onclick="history.back()">← Back</button>
+
+    <section class="hero glass-card">
+      <div class="badge">Premium Panel</div>
+      <h1>HEADLOCK JAME</h1>
+      <p>BY JAME FF</p>
+      <div class="logo-wrap">
+        <div class="logo">⚙️</div>
+      </div>
+    </section>
+
+    <section class="grid-menu">
+      <button class="action-card" data-action="reg">REG FILES</button>
+      <button class="action-card" data-action="boost">BOST RAM</button>
+      <button class="action-card" data-action="headlock">HEADLOCK JAME</button>
+      <button class="action-card" data-action="fix">⚙️ FIX RUNG</button>
+    </section>
+
+    <section class="control glass-card">
+      <h3>STARTING FILES</h3>
+      <div class="switch-row">
+        <span>ON</span>
+        <label class="switch">
+          <input id="mainToggle" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+        <span>OFF</span>
+      </div>
+      <div id="statusText" class="status">Panel ready</div>
+    </section>
+
+    <section class="info glass-card">
+      <h2>Info</h2>
+      <div class="done">Done</div>
+      <p>Panel made by <b>Jame FF</b></p>
+      <p>Zalo <b>0333635135</b></p>
+      <p>FaceBook</p>
+      <p><b>Jame FF</b></p>
+      <p>TikTok</p>
+      <p><b>@jameff</b></p>
+      <button class="update-btn" type="button">UPDATE TO NEW+</button>
+      <small>Copyright belongs to Jame FF</small>
+      <small>Thank For Using</small>
+    </section>
+  </main>
+
+  <div id="versionModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h3>Chọn phiên bản Free Fire:</h3>
+      <div class="version-row">
+        <button class="version-btn" data-version="Free Fire">Free Fire ⚡</button>
+        <button class="version-btn" data-version="Free Fire Max">Free Fire Max</button>
+      </div>
+      <div class="success-row">
+        <button class="success">✓ HeadLock Was Successful!</button>
+        <button class="danger">✕ Turn off HeadLock</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="boostModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card terminal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h2>⚡ Tối ưu máy</h2>
+      <pre id="terminal"></pre>
+      <div id="boostDone" class="boost-done hidden">
+        <div class="check">✓</div>
+        <p>BOST RAM thành công!</p>
+        <button class="update-btn" type="button" data-close>Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
