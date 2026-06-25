@@ -113,7 +113,7 @@ function formatDate(value) {
   return date.toLocaleString("vi-VN");
 }
 
-async function checkKeyOnline(key) {
+async function loginWithValue(key) {
   try {
     const res = await fetch(API_BASE + "/check-key", {
       method: "POST",
@@ -168,7 +168,7 @@ async function loginWithValue(value) {
   if (API_BASE && API_BASE.startsWith("http")) {
     setLoginMessage("", "Đang kiểm tra key online...");
 
-    const result = await checkKeyOnline(value);
+    const result = await loginWithValue(value);
 
     if (result.success) {
       localStorage.setItem(STORAGE.KEY, value);
