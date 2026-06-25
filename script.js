@@ -1,4 +1,4 @@
-const APP_PASSWORD = '0333635135';
+const APP_PASSWORD = 'Jame-FF-OB54';
 const passwordScreen = document.getElementById('passwordScreen');
 const mainApp = document.getElementById('mainApp');
 const passwordForm = document.getElementById('passwordForm');
