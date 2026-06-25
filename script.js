@@ -1,11 +1,32 @@
-bash -lc cat > /mnt/data/script.js <<'EOF'
 // ================= HEADLOCK JAME CONFIG =================
-// API ONLINE 100% - không dùng key offline
+// Nếu dùng API online riêng, đổi API_BASE thành link server của bạn.
+// Ví dụ: const API_BASE = "https://headlock-jame.onrender.com/";
+// Nếu để rỗng "", web sẽ dùng mật khẩu offline trong PASSWORDS.
 const API_BASE = "https://headlock-jame.onrender.com";
 
 // Link Get Key Free. Đổi link này thành trang get key của bạn.
 const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
+
 const CONTACT_ZALO = "https://zalo.me/0333635135";
+
+const PASSWORDS = {
+
+  "VIP2026": {
+      days:1,
+      slot:200
+  },
+
+  "VIP30": {
+      days:30,
+      slot:100
+  },
+
+  "VIP365": {
+      days:365,
+      slot:20
+  }
+
+};
 
 const STORAGE = {
   DEVICE: "headlock-jame-device-id",
@@ -14,6 +35,8 @@ const STORAGE = {
   VERSION: "headlock-jame-freefire-version",
   EXPIRE: "headlock-jame-expire"
 };
+
+const KEY_DURATION = 24 * 60 * 60 * 1000; // 1 ngày
 
 const passwordScreen = document.getElementById("passwordScreen");
 const mainApp = document.getElementById("mainApp");
@@ -26,6 +49,7 @@ const contactBtn = document.getElementById("contactBtn");
 const getKeyBtn = document.getElementById("getKeyBtn");
 const infoGetKeyBtn = document.getElementById("infoGetKeyBtn");
 const licenseText = document.getElementById("licenseText");
+
 const actions = document.querySelectorAll(".feature-card");
 const versionModal = document.getElementById("versionModal");
 const boostModal = document.getElementById("boostModal");
@@ -37,10 +61,6 @@ const offBtn = document.getElementById("offBtn");
 const toast = document.getElementById("toast");
 const infoPanel = document.getElementById("infoPanel");
 const overlay = document.getElementById("overlay");
-const menuBtn = document.getElementById("menuBtn");
-const closeInfoBtn = document.getElementById("closeInfo");
-const successBtn = document.getElementById("successBtn");
-const dangerBtn = document.getElementById("dangerBtn");
 
 const terminalLines = [
   "$ Initializing BOST RAM optimization...",
@@ -69,13 +89,11 @@ function getDeviceId() {
 }
 
 function setLoginMessage(type, text) {
-  if (!passwordError) return;
   passwordError.className = "message " + (type || "");
   passwordError.textContent = text;
 }
 
 function showToast(text) {
-  if (!toast) return;
   toast.textContent = text;
   toast.classList.add("active");
 
@@ -87,9 +105,11 @@ function showToast(text) {
 
 function formatDate(value) {
   if (!value) return "vĩnh viễn";
-
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
 
   return date.toLocaleString("vi-VN");
 }
@@ -110,74 +130,77 @@ async function checkKeyOnline(key) {
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-      throw new Error(data?.message || "Key không hợp lệ hoặc API từ chối.");
+      throw new Error(data?.message || "Không kết nối được API");
     }
 
     return data;
   } catch (error) {
     throw new Error(
-      error?.message ||
-        "Không gọi được server/API. Kiểm tra Render, CORS hoặc route /check-key."
+      "Không gọi được server/API. Kiểm tra Render, CORS hoặc route /check-key."
     );
   }
 }
 
+
 function unlockApp(message = "Đã mở khóa") {
   document.body.classList.add("unlocked");
-  passwordScreen?.classList.add("hidden");
-  mainApp?.classList.remove("locked");
-  logoutBtn?.classList.remove("hidden");
-
-  if (licenseText) {
-    licenseText.textContent = message;
-  }
+  passwordScreen.classList.add("hidden");
+  mainApp.classList.remove("locked");
+  logoutBtn.classList.remove("hidden");
+  licenseText.textContent = message;
 
   sessionStorage.setItem(STORAGE.SESSION, "true");
 }
 
 function lockApp() {
   document.body.classList.remove("unlocked");
-  passwordScreen?.classList.remove("hidden");
-  mainApp?.classList.add("locked");
-  logoutBtn?.classList.add("hidden");
-
-  if (passwordInput) {
-    passwordInput.value = "";
-  }
+  passwordScreen.classList.remove("hidden");
+  mainApp.classList.add("locked");
+  logoutBtn.classList.add("hidden");
+  passwordInput.value = "";
 
   sessionStorage.removeItem(STORAGE.SESSION);
   localStorage.removeItem(STORAGE.KEY);
   localStorage.removeItem(STORAGE.EXPIRE);
-
   setLoginMessage("", "Zalo hỗ trợ: 0333635135");
 }
 
 async function loginWithValue(value) {
-  if (!API_BASE || !API_BASE.startsWith("http")) {
-    throw new Error("API online chưa được cấu hình.");
+  if (API_BASE && API_BASE.startsWith("http")) {
+    setLoginMessage("", "Đang kiểm tra key online...");
+
+    const result = await checkKeyOnline(value);
+
+    if (result.success) {
+      localStorage.setItem(STORAGE.KEY, value);
+
+      if (result.expiresAt) {
+        localStorage.setItem(STORAGE.EXPIRE, new Date(result.expiresAt).getTime());
+      }
+
+      unlockApp(`
+━━━━━━━━━━━━━━━━━━
+
+🔓 LOGIN SUCCESS
+
+🔑 Key : ${value}
+
+🕒 Hết hạn lúc :
+
+${formatDate(result.expiresAt)}
+
+🎟 Slot : ${result.usedSlots || 0}/${result.maxSlots || "?"}
+
+━━━━━━━━━━━━━━━━━━
+`);
+
+      return;
+    }
+
+    throw new Error(result.message || "Key không hợp lệ");
   }
 
-  setLoginMessage("", "Đang kiểm tra key online...");
-
-  const result = await checkKeyOnline(value);
-
-  if (!result || result.success !== true) {
-    throw new Error(result?.message || "Key không hợp lệ.");
-  }
-
-  localStorage.setItem(STORAGE.KEY, value);
-
-  if (result.expiresAt) {
-    localStorage.setItem(STORAGE.EXPIRE, new Date(result.expiresAt).getTime());
-  } else {
-    localStorage.removeItem(STORAGE.EXPIRE);
-  }
-
-  unlockApp(
-    `━━━━━━━━━━━━━━━━━━\nLOGIN SUCCESS\nKey : ${value}\nHết hạn lúc : ${formatDate(
-      result.expiresAt
-    )}\nSlot : ${result.usedSlots || 0}/${result.maxSlots || "?"}\n━━━━━━━━━━━━━━━━━━`
-  );
+  throw new Error("API online chưa hoạt động.");
 }
 
 async function autoLogin() {
@@ -189,29 +212,28 @@ async function autoLogin() {
 
   const expire = Number(localStorage.getItem(STORAGE.EXPIRE));
 
-  if (expire && Date.now() > expire) {
+  if (!expire || Date.now() > expire) {
     lockApp();
     return;
   }
 
   try {
     unlockApp(
-      expire
-        ? "Key hết hạn: " + new Date(expire).toLocaleString("vi-VN")
-        : "Đã đăng nhập bằng API online"
+      "Key hết hạn: " +
+      new Date(expire).toLocaleString("vi-VN")
     );
   } catch {
     lockApp();
   }
 }
 
-passwordForm?.addEventListener("submit", async (event) => {
+passwordForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const value = passwordInput.value.trim();
 
   if (!value) {
-    setLoginMessage("err", "Vui lòng nhập key.");
+    setLoginMessage("err", "Vui lòng nhập mật khẩu hoặc key.");
     return;
   }
 
@@ -234,60 +256,52 @@ passwordForm?.addEventListener("submit", async (event) => {
   }
 });
 
-togglePassword?.addEventListener("click", () => {
+togglePassword.addEventListener("click", () => {
   const isPassword = passwordInput.type === "password";
   passwordInput.type = isPassword ? "text" : "password";
-  togglePassword.textContent = isPassword ? "Ẩn" : "Hiện";
+  togglePassword.textContent = isPassword ? "🙈" : "👁";
 });
 
-logoutBtn?.addEventListener("click", lockApp);
-contactBtn?.addEventListener("click", () => window.open(CONTACT_ZALO, "_blank"));
+logoutBtn.addEventListener("click", lockApp);
+contactBtn.addEventListener("click", () => window.open(CONTACT_ZALO, "_blank"));
 
 function openGetKeyFree() {
   window.open(GET_KEY_FREE_URL, "_blank");
 }
 
-getKeyBtn?.addEventListener("click", openGetKeyFree);
-infoGetKeyBtn?.addEventListener("click", openGetKeyFree);
+getKeyBtn.addEventListener("click", openGetKeyFree);
+infoGetKeyBtn.addEventListener("click", openGetKeyFree);
 
-menuBtn?.addEventListener("click", () => {
-  infoPanel?.classList.add("active");
-  overlay?.classList.remove("hidden");
+document.getElementById("menuBtn").addEventListener("click", () => {
+  infoPanel.classList.add("active");
+  overlay.classList.remove("hidden");
 });
 
-closeInfoBtn?.addEventListener("click", closeAll);
-overlay?.addEventListener("click", closeAll);
+document.getElementById("closeInfo").addEventListener("click", closeAll);
+overlay.addEventListener("click", closeAll);
 
 function closeAll() {
-  infoPanel?.classList.remove("active");
-  overlay?.classList.add("hidden");
-  versionModal?.classList.add("hidden");
-  boostModal?.classList.add("hidden");
-  versionModal?.setAttribute("aria-hidden", "true");
-  boostModal?.setAttribute("aria-hidden", "true");
+  infoPanel.classList.remove("active");
+  overlay.classList.add("hidden");
+  versionModal.classList.add("hidden");
+  boostModal.classList.add("hidden");
+  versionModal.setAttribute("aria-hidden", "true");
+  boostModal.setAttribute("aria-hidden", "true");
 }
 
 function openModal(modal) {
-  if (!modal) return;
   modal.classList.remove("hidden");
-  overlay?.classList.remove("hidden");
+  overlay.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
 }
 
 function closeModal(modal) {
-  if (!modal) return;
-
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
-
-  const hasOpenModal =
-    !versionModal?.classList.contains("hidden") ||
-    !boostModal?.classList.contains("hidden") ||
-    infoPanel?.classList.contains("active");
-
-  if (!hasOpenModal) {
-    overlay?.classList.add("hidden");
+  if (!versionModal.classList.contains("hidden") || !boostModal.classList.contains("hidden") || infoPanel.classList.contains("active")) {
+    return;
   }
+  overlay.classList.add("hidden");
 }
 
 document.querySelectorAll("[data-close]").forEach((btn) => {
@@ -310,8 +324,6 @@ function openVersionModal() {
 }
 
 function runBoost() {
-  if (!terminal || !boostDone) return;
-
   terminal.textContent = "";
   boostDone.classList.add("hidden");
   openModal(boostModal);
@@ -324,6 +336,7 @@ function runBoost() {
 
     if (index >= terminalLines.length) {
       clearInterval(timer);
+
       setTimeout(() => {
         boostDone.classList.remove("hidden");
       }, 450);
@@ -350,60 +363,51 @@ actions.forEach((card) => {
 
     if (action === "fix") {
       showToast(card.classList.contains("active") ? "Đã bật FIX RUNG" : "Đã tắt FIX RUNG");
-      if (statusText) statusText.textContent = "FIX RUNG activated successfully!";
+      statusText.textContent = "FIX RUNG activated successfully!";
     }
   });
 });
 
 document.querySelectorAll(".version-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".version-btn").forEach((item) => {
-      item.classList.remove("active");
-    });
-
+    document.querySelectorAll(".version-btn").forEach((item) => item.classList.remove("active"));
     btn.classList.add("active");
+
     localStorage.setItem(STORAGE.VERSION, btn.dataset.version);
-
-    if (statusText) {
-      statusText.textContent = `${btn.dataset.version} selected.\nHeadLock Jame ready!`;
-    }
-
-    onBtn?.classList.add("active");
-    offBtn?.classList.remove("active");
+    statusText.textContent = `${btn.dataset.version} selected. HeadLock Jame ready!`;
+    onBtn.classList.add("active");
+    offBtn.classList.remove("active");
   });
 });
 
-successBtn?.addEventListener("click", () => {
-  if (statusText) statusText.textContent = "HeadLock Was Successful!";
-  onBtn?.classList.add("active");
-  offBtn?.classList.remove("active");
+document.getElementById("successBtn").addEventListener("click", () => {
+  statusText.textContent = "HeadLock Was Successful!";
+  onBtn.classList.add("active");
+  offBtn.classList.remove("active");
   closeModal(versionModal);
   showToast("HeadLock bật thành công");
 });
 
-dangerBtn?.addEventListener("click", () => {
-  if (statusText) statusText.textContent = "HeadLock turned off";
-  offBtn?.classList.add("active");
-  onBtn?.classList.remove("active");
+document.getElementById("dangerBtn").addEventListener("click", () => {
+  statusText.textContent = "HeadLock turned off";
+  offBtn.classList.add("active");
+  onBtn.classList.remove("active");
   closeModal(versionModal);
   showToast("Đã tắt HeadLock");
 });
 
-onBtn?.addEventListener("click", () => {
+onBtn.addEventListener("click", () => {
   onBtn.classList.add("active");
-  offBtn?.classList.remove("active");
-  if (statusText) statusText.textContent = "Panel is ON";
+  offBtn.classList.remove("active");
+  statusText.textContent = "Panel is ON";
   openVersionModal();
 });
 
-offBtn?.addEventListener("click", () => {
+offBtn.addEventListener("click", () => {
   offBtn.classList.add("active");
-  onBtn?.classList.remove("active");
-  if (statusText) statusText.textContent = "Panel is OFF";
+  onBtn.classList.remove("active");
+  statusText.textContent = "Panel is OFF";
   showToast("Đã tắt HEADLOCK");
 });
 
 autoLogin();
-EOF
-node --check /mnt/data/script.js
-ls -l /mnt/data/script.js
