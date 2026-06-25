@@ -1,62 +1,58 @@
 // ================= HEADLOCK JAME CONFIG =================
 const API_BASE = "";
+
 // ================= MAINTENANCE =================
 const MAINTENANCE_MODE = false; // false = hoạt động | true = bảo trì
 
 if (MAINTENANCE_MODE) {
-    document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
+    document.body.innerHTML = `
+      <div style="
+        position:fixed;
+        inset:0;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background:#07090f;
+        color:white;
+        font-family:Arial,sans-serif;
+        text-align:center;
+        padding:20px;
+      ">
+        <div>
+          <div style="
+            font-size:70px;
+            font-weight:bold;
+            color:#00d4ff;
+            margin-bottom:20px;
+          ">
+            HEADLOCK
+          </div>
 
-        document.body.innerHTML = `
-        <div style="
-            position:fixed;
-            inset:0;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            background:#07090f;
-            color:white;
-            font-family:Arial,sans-serif;
-            text-align:center;
-            padding:20px;
-        ">
+          <h2 style="margin:0 0 15px">
+            APP ĐANG NÂNG CẤP
+          </h2>
 
-            <div>
+          <p style="opacity:.8">
+            Phiên bản mới đang được cập nhật.<br>
+            Vui lòng quay lại sau.
+          </p>
 
-                <div style="
-                    font-size:70px;
-                    font-weight:bold;
-                    color:#00d4ff;
-                    margin-bottom:20px;
-                ">
-                    HEADLOCK
-                </div>
-
-                <h2 style="margin:0 0 15px">
-                    APP ĐANG NÂNG CẤP
-                </h2>
-
-                <p style="opacity:.8">
-                    Phiên bản mới đang được cập nhật.<br>
-                    Vui lòng quay lại sau.
-                </p>
-
-                <div style="
-                    margin-top:25px;
-                    color:#00ff88;
-                    font-size:14px;
-                ">
-                    © HEADLOCK JAME
-                </div>
-
-            </div>
-
+          <div style="
+            margin-top:25px;
+            color:#00ff88;
+            font-size:14px;
+          ">
+            © HEADLOCK JAME
+          </div>
         </div>
-        `;
+      </div>
+    `;
+  });
 
-    });
-
-    throw new Error("Maintenance");
+  throw new Error("Maintenance");
 }
+
 const GET_KEY_FREE_URL = "https://www.ngchiducdz.info.vn/free.html";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
@@ -100,6 +96,11 @@ const licenseText = document.getElementById("licenseText");
 const actions = document.querySelectorAll(".feature-card");
 const versionModal = document.getElementById("versionModal");
 const boostModal = document.getElementById("boostModal");
+const crosshairModal = document.getElementById("crosshairModal");
+const crosshairDot = document.getElementById("crosshairDot");
+const crosshairSize = document.getElementById("crosshairSize");
+const crosshairColor = document.getElementById("crosshairColor");
+
 const terminal = document.getElementById("terminal");
 const boostDone = document.getElementById("boostDone");
 const statusText = document.getElementById("statusText");
@@ -327,25 +328,37 @@ overlay.addEventListener("click", closeAll);
 function closeAll() {
   infoPanel.classList.remove("active");
   overlay.classList.add("hidden");
+
   versionModal.classList.add("hidden");
   boostModal.classList.add("hidden");
+
   versionModal.setAttribute("aria-hidden", "true");
   boostModal.setAttribute("aria-hidden", "true");
+
+  if (crosshairModal) {
+    crosshairModal.classList.add("hidden");
+    crosshairModal.setAttribute("aria-hidden", "true");
+  }
 }
 
 function openModal(modal) {
+  if (!modal) return;
+
   modal.classList.remove("hidden");
   overlay.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
 }
 
 function closeModal(modal) {
+  if (!modal) return;
+
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
 
   if (
     !versionModal.classList.contains("hidden") ||
     !boostModal.classList.contains("hidden") ||
+    (crosshairModal && !crosshairModal.classList.contains("hidden")) ||
     infoPanel.classList.contains("active")
   ) {
     return;
@@ -358,6 +371,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
   btn.addEventListener("click", () => {
     closeModal(versionModal);
     closeModal(boostModal);
+    closeModal(crosshairModal);
   });
 });
 
@@ -398,6 +412,18 @@ actions.forEach((card) => {
   card.addEventListener("click", () => {
     const action = card.dataset.action;
     card.classList.toggle("active");
+
+    if (action === "crosshair") {
+      openModal(crosshairModal);
+      showToast("Mở tâm ảo mô phỏng");
+      return;
+    }
+
+    if (action === "aimbody") {
+      showToast(card.classList.contains("active") ? "Đã bật AIMBODY" : "Đã tắt AIMBODY");
+      statusText.textContent = "AIMBODY simulation activated!";
+      return;
+    }
 
     if (action === "boost") {
       runBoost();
@@ -462,6 +488,40 @@ offBtn.addEventListener("click", () => {
   statusText.textContent = "Panel is OFF";
   showToast("Đã tắt HEADLOCK");
 });
+
+function updateCrosshairPreview() {
+  if (!crosshairDot || !crosshairSize || !crosshairColor) return;
+
+  const size = crosshairSize.value + "px";
+  const color = crosshairColor.value;
+
+  crosshairDot.style.width = size;
+  crosshairDot.style.height = size;
+  crosshairDot.style.borderColor = color;
+  crosshairDot.style.boxShadow = `0 0 16px ${color}`;
+
+  let style = document.getElementById("crosshairDynamicStyle");
+
+  if (!style) {
+    style = document.createElement("style");
+    style.id = "crosshairDynamicStyle";
+    document.head.appendChild(style);
+  }
+
+  style.textContent = `
+    .crosshair-dot::before,
+    .crosshair-dot::after {
+      background: ${color};
+      box-shadow: 0 0 12px ${color};
+    }
+  `;
+}
+
+if (crosshairSize && crosshairColor) {
+  crosshairSize.addEventListener("input", updateCrosshairPreview);
+  crosshairColor.addEventListener("input", updateCrosshairPreview);
+  updateCrosshairPreview();
+}
 
 startExpireWatcher();
 autoLogin();
