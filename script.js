@@ -1,6 +1,63 @@
 // ================= HEADLOCK JAME CONFIG =================
 const API_BASE = "";
-const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
+// ================= MAINTENANCE =================
+const MAINTENANCE_MODE = false; // false = hoạt động | true = bảo trì
+
+if (MAINTENANCE_MODE) {
+    document.addEventListener("DOMContentLoaded", () => {
+
+        document.body.innerHTML = `
+        <div style="
+            position:fixed;
+            inset:0;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:#07090f;
+            color:white;
+            font-family:Arial,sans-serif;
+            text-align:center;
+            padding:20px;
+        ">
+
+            <div>
+
+                <div style="
+                    font-size:70px;
+                    font-weight:bold;
+                    color:#00d4ff;
+                    margin-bottom:20px;
+                ">
+                    HEADLOCK
+                </div>
+
+                <h2 style="margin:0 0 15px">
+                    APP ĐANG NÂNG CẤP
+                </h2>
+
+                <p style="opacity:.8">
+                    Phiên bản mới đang được cập nhật.<br>
+                    Vui lòng quay lại sau.
+                </p>
+
+                <div style="
+                    margin-top:25px;
+                    color:#00ff88;
+                    font-size:14px;
+                ">
+                    © HEADLOCK JAME
+                </div>
+
+            </div>
+
+        </div>
+        `;
+
+    });
+
+    throw new Error("Maintenance");
+}
+const GET_KEY_FREE_URL = "https://www.ngchiducdz.info.vn/free.html";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = [
@@ -10,7 +67,7 @@ const PASSWORDS = [
   "Headlock"
 ];
 
-// Hết hạn: 26/06/2026 23:59:59
+// Hết hạn: 25/07/2026 23:59:59
 const EXPIRE_CODE = "MjAyNi0wNy0yNVQyMzo1OTo1OQ==";
 
 function getExpireDateTime() {
@@ -193,6 +250,25 @@ async function autoLogin() {
   } catch {
     lockApp();
   }
+}
+
+function startExpireWatcher() {
+  setInterval(() => {
+    const savedKey = localStorage.getItem(STORAGE.KEY);
+
+    if (!savedKey) return;
+    if (!PASSWORDS.includes(savedKey)) return;
+
+    const expireDateTime = getExpireDateTime();
+    const expire = new Date(expireDateTime);
+
+    if (Number.isNaN(expire.getTime())) return;
+
+    if (new Date() > expire) {
+      lockApp();
+      setLoginMessage("err", "Key đã hết hạn. Vui lòng lấy key mới.");
+    }
+  }, 1000);
 }
 
 passwordForm.addEventListener("submit", async (event) => {
@@ -387,4 +463,5 @@ offBtn.addEventListener("click", () => {
   showToast("Đã tắt HEADLOCK");
 });
 
+startExpireWatcher();
 autoLogin();
