@@ -1,7 +1,7 @@
 // ================= HEADLOCK JAME CONFIG =================
 const API_BASE = "";
 // ================= MAINTENANCE =================
-const MAINTENANCE_MODE = true; // false = hoạt động | true = bảo trì
+const MAINTENANCE_MODE = false; // false = hoạt động | true = bảo trì
 
 if (MAINTENANCE_MODE) {
     document.addEventListener("DOMContentLoaded", () => {
