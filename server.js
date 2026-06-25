@@ -13,6 +13,7 @@ function readDB() {
   if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify({ keys: {} }, null, 2));
   }
+
   return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
 }
 
@@ -28,18 +29,27 @@ app.post("/check-key", (req, res) => {
   const { key, deviceId } = req.body;
 
   if (!key || !deviceId) {
-    return res.json({ success: false, message: "Thiếu key hoặc mã thiết bị." });
+    return res.json({
+      success: false,
+      message: "Thiếu key hoặc mã thiết bị."
+    });
   }
 
   const db = readDB();
   const keyData = db.keys[key];
 
   if (!keyData) {
-    return res.json({ success: false, message: "Key không hợp lệ." });
+    return res.json({
+      success: false,
+      message: "Key không hợp lệ."
+    });
   }
 
   if (new Date() > new Date(keyData.expiresAt)) {
-    return res.json({ success: false, message: "Key đã hết hạn." });
+    return res.json({
+      success: false,
+      message: "Key đã hết hạn."
+    });
   }
 
   if (!Array.isArray(keyData.devices)) {
@@ -58,7 +68,7 @@ app.post("/check-key", (req, res) => {
     saveDB(db);
   }
 
-  res.json({
+  return res.json({
     success: true,
     expiresAt: keyData.expiresAt,
     slotUsed: keyData.devices.length,
