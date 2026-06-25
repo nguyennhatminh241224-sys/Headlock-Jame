@@ -171,7 +171,7 @@ async function checkKeyOnline(key) {
     body: JSON.stringify({
       key,
       deviceId: getDeviceId()
-    })
+    } )
   });
 
   if (!res.ok) {
@@ -411,55 +411,17 @@ function runBoost() {
 actions.forEach((card) => {
   card.addEventListener("click", () => {
     const action = card.dataset.action;
-    card.classList.toggle("active");
+    
+    // Riêng crosshair không toggle active ngay tại đây, để nút toggle quyết định
+    if (action !== "crosshair") {
+      card.classList.toggle("active");
+    }
 
     if (action === "crosshair") {
       openModal(crosshairModal);
-      showToast("Mở tâm ảo");
+      showToast("Cấu hình tâm ảo Overlay");
       return;
     }
-
-    // ================= XỬ LÝ OVERLAY TÂM ẢO VÀO GAME =================
-const btnToggleOverlay = document.getElementById("btnToggleOverlay");
-const crosshairFeatureCard = document.querySelector('[data-action="crosshair"]');
-const crosshairStatusText = document.getElementById("crosshairStatus");
-
-if (btnToggleOverlay) {
-  btnToggleOverlay.addEventListener("click", () => {
-    const isActive = btnToggleOverlay.classList.contains("active-overlay");
-    const size = parseInt(crosshairSize.value) || 34;
-    const color = crosshairColor.value || "#00ff88";
-
-    if (!isActive) {
-      // 1. Gửi lệnh yêu cầu bật Overlay sang App APK Android
-      if (window.AndroidBridge && window.AndroidBridge.toggleOverlay) {
-        // Gọi hàm hệ thống của Android
-        window.AndroidBridge.toggleOverlay(true, size, color);
-      } else {
-        alert("Vui lòng chạy trong ứng dụng Android APK để bật Overlay vào game!");
-        return;
-      }
-
-      btnToggleOverlay.classList.add("active-overlay");
-      btnToggleOverlay.innerText = "✕ TẮT OVERLAY GAME";
-      btnToggleOverlay.style.background = "#ff4a4a";
-      if (crosshairFeatureCard) crosshairFeatureCard.classList.add("active");
-      if (crosshairStatusText) crosshairStatusText.innerText = "Đang bật Overlay";
-      closeModal(crosshairModal);
-    } else {
-      // 2. Gửi lệnh tắt Overlay sang App APK Android
-      if (window.AndroidBridge && window.AndroidBridge.toggleOverlay) {
-        window.AndroidBridge.toggleOverlay(false, 0, "");
-      }
-
-      btnToggleOverlay.classList.remove("active-overlay");
-      btnToggleOverlay.innerText = "KÍCH HOẠT OVERLAY VÀO GAME";
-      btnToggleOverlay.style.background = "#00ff88";
-      if (crosshairFeatureCard) crosshairFeatureCard.classList.remove("active");
-      if (crosshairStatusText) crosshairStatusText.innerText = "Bấm để cấu hình & bật";
-    }
-  });
-}
 
     if (action === "aimbody") {
       showToast(card.classList.contains("active") ? "Đã bật AIMBODY" : "Đã tắt AIMBODY");
@@ -484,7 +446,7 @@ if (btnToggleOverlay) {
       statusText.textContent = "FIX RUNG activated successfully!";
     }
   });
-});
+} );
 
 document.querySelectorAll(".version-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -557,12 +519,109 @@ function updateCrosshairPreview() {
       box-shadow: 0 0 12px ${color};
     }
   `;
+
+  // Cập nhật thời gian thực vào hệ thống tâm ảo đang chạy đè nếu có
+  const screenCrosshair = document.getElementById("globalScreenCrosshair");
+  if (screenCrosshair) {
+    screenCrosshair.style.width = size;
+    screenCrosshair.style.height = size;
+    screenCrosshair.style.borderColor = color;
+    screenCrosshair.style.boxShadow = `0 0 16px ${color}`;
+  }
 }
 
 if (crosshairSize && crosshairColor) {
   crosshairSize.addEventListener("input", updateCrosshairPreview);
   crosshairColor.addEventListener("input", updateCrosshairPreview);
   updateCrosshairPreview();
+}
+
+// ================= XỬ LÝ OVERLAY TÂM ẢO VÀO GAME =================
+const btnToggleOverlay = document.getElementById("btnToggleOverlay");
+const crosshairFeatureCard = document.querySelector('[data-action="crosshair"]');
+const crosshairStatusText = document.getElementById("crosshairStatus");
+
+if (btnToggleOverlay) {
+  btnToggleOverlay.addEventListener("click", () => {
+    const isActive = btnToggleOverlay.classList.contains("active-overlay");
+    const size = crosshairSize.value;
+    const color = crosshairColor.value;
+
+    if (!isActive) {
+      // 1. KÍCH HOẠT OVERLAY
+      btnToggleOverlay.classList.add("active-overlay");
+      btnToggleOverlay.innerText = "✕ TẮT OVERLAY GAME";
+      btnToggleOverlay.style.background = "#ff4a4a"; // Đổi sang màu đỏ báo tắt
+      
+      if (crosshairFeatureCard) crosshairFeatureCard.classList.add("active");
+      if (crosshairStatusText) crosshairStatusText.innerText = "Đang bật Overlay";
+
+      // Lệnh gọi tích hợp Android App / Môi trường Giả lập đè
+      if (window.AndroidBridge && window.AndroidBridge.showCrosshairOverlay) {
+        window.AndroidBridge.showCrosshairOverlay(true, size, color);
+      } else {
+        // Giả lập tạo tâm đè Web screen nếu chạy trên trình duyệt thường
+        createWebOverlay(size, color);
+      }
+      showToast("Đã kích hoạt Tâm Ảo Overlay!");
+      closeModal(crosshairModal);
+    } else {
+      // 2. HỦY KÍCH HOẠT OVERLAY
+      btnToggleOverlay.classList.remove("active-overlay");
+      btnToggleOverlay.innerText = "KÍCH HOẠT OVERLAY VÀO GAME";
+      btnToggleOverlay.style.background = "#00ff88"; // Trở lại màu xanh
+
+      if (crosshairFeatureCard) crosshairFeatureCard.classList.remove("active");
+      if (crosshairStatusText) crosshairStatusText.innerText = "Bấm để cấu hình & bật";
+
+      if (window.AndroidBridge && window.AndroidBridge.showCrosshairOverlay) {
+        window.AndroidBridge.showCrosshairOverlay(false, 0, "");
+      } else {
+        removeWebOverlay();
+      }
+      showToast("Đã tắt Tâm Ảo Overlay");
+    }
+  });
+}
+
+// Hàm bổ trợ giả lập vẽ Tâm đè lên màn hình cho môi trường Web/WebView thử nghiệm
+function createWebOverlay(size, color) {
+  removeWebOverlay();
+  const crosshairContainer = document.createElement("div");
+  crosshairContainer.id = "globalScreenCrosshair";
+  crosshairContainer.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: ${size}px;
+    height: ${size}px;
+    border: 2px solid ${color};
+    border-radius: 50%;
+    box-shadow: 0 0 16px ${color};
+    pointer-events: none;
+    z-index: 999999;
+  `;
+
+  // Vẽ dấu cộng nhỏ ở giữa tâm ảo công nghệ overlay
+  const styleEl = document.createElement("style");
+  styleEl.id = "globalScreenCrosshairStyle";
+  styleEl.textContent = `
+    #globalScreenCrosshair::before, #globalScreenCrosshair::after {
+      content: ''; position: absolute; background: ${color}; box-shadow: 0 0 12px ${color};
+    }
+    #globalScreenCrosshair::before { top: 50%; left: -4px; right: -4px; height: 2px; transform: translateY(-50%); }
+    #globalScreenCrosshair::after { left: 50%; top: -4px; bottom: -4px; width: 2px; transform: translateX(-50%); }
+  `;
+  document.head.appendChild(styleEl);
+  document.body.appendChild(crosshairContainer);
+}
+
+function removeWebOverlay() {
+  const exOverlay = document.getElementById("globalScreenCrosshair");
+  const exStyle = document.getElementById("globalScreenCrosshairStyle");
+  if (exOverlay) exOverlay.remove();
+  if (exStyle) exStyle.remove();
 }
 
 startExpireWatcher();
