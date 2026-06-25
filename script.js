@@ -53,7 +53,7 @@ if (MAINTENANCE_MODE) {
   throw new Error("Maintenance");
 }
 
-const GET_KEY_FREE_URL = "https://www.ngchiducdz.info.vn/free.html";
+const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = [
