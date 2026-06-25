@@ -2,7 +2,6 @@
 // Nếu dùng API online riêng, đổi API_BASE thành link server của bạn.
 // Ví dụ: const API_BASE = "";
 // Nếu để rỗng "", web sẽ dùng mật khẩu offline trong PASSWORDS.
-const API_BASE = "";
 
 // Link Get Key Free. Đổi link này thành trang get key của bạn.
 const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
