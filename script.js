@@ -10,10 +10,7 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = [
-  "0333635135",
-  "JameFF",
-  "VIP2026",
-  "Headlock"
+  "VIP-2026"
 ];
 
 const STORAGE = {
