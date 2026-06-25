@@ -3,10 +3,10 @@ const API_BASE = "";
 
 // Cấu hình riêng từng key: slot + hạn dùng
 const KEY_CONFIGS = {
-  "0333635135": {
-    slots: 1,
-    expiresAt: "2026-07-25T23:59:59"
-  },
+  key: "0333635135",
+  slots: 1,
+  devices: ["JAME-ABC123"]
+},
   "JameFF": {
     slots: 2,
     expiresAt: "2026-08-01T23:59:59"
