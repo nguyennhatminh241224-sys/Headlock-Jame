@@ -9,14 +9,17 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const PASSWORDS = [ "VIP-2026"];
+const PASSWORDS = [ "VIP2026": 1,    // 1 ngày];
 
 const STORAGE = {
   DEVICE: "headlock-jame-device-id",
   KEY: "headlock-jame-key",
   SESSION: "headlock-jame-unlocked",
-  VERSION: "headlock-jame-freefire-version"
+  VERSION: "headlock-jame-freefire-version",
+  EXPIRE: "headlock-jame-expire"
 };
+
+const KEY_DURATION = 24 * 60 * 60 * 1000; // 1 ngày
 
 const passwordScreen = document.getElementById("passwordScreen");
 const mainApp = document.getElementById("mainApp");
@@ -150,16 +153,35 @@ async function loginWithValue(value) {
   }
 
   if (PASSWORDS.includes(value)) {
+
+    const expireTime = Date.now() + KEY_DURATION;
+
     localStorage.setItem(STORAGE.KEY, value);
-    unlockApp("Đăng nhập offline thành công");
+    localStorage.setItem(STORAGE.EXPIRE, expireTime);
+
+    unlockApp(
+        "Key hết hạn: " +
+        new Date(expireTime).toLocaleString("vi-VN")
+    );
+
     return;
-  }
+}
 
   throw new Error("Sai mật khẩu. Vui lòng thử lại.");
 }
 
 async function autoLogin() {
   const savedKey = localStorage.getItem(STORAGE.KEY);
+
+  const expire = Number(localStorage.getItem(STORAGE.EXPIRE));
+
+if (!expire || Date.now() > expire) {
+    localStorage.removeItem(STORAGE.KEY);
+    sessionStorage.removeItem(STORAGE.SESSION);
+localStorage.removeItem(STORAGE.KEY);
+localStorage.removeItem(STORAGE.EXPIRE);
+    return;
+}
 
   if (!savedKey || sessionStorage.getItem(STORAGE.SESSION) !== "true") {
     return;
