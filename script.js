@@ -115,20 +115,31 @@ function formatDate(value) {
 }
 
 async function checkKeyOnline(key) {
-  const res = await fetch(API_BASE + "/check-key", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      key,
-      deviceId: getDeviceId()
-    })
-  });
+  try {
+    const res = await fetch(API_BASE + "/check-key", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        key,
+        deviceId: getDeviceId()
+      })
+    });
 
-  if (!res.ok) {
-    throw new Error("Không kết nối được API");
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      throw new Error(data?.message || "Không kết nối được API");
+    }
+
+    return data;
+  } catch (error) {
+    throw new Error(
+      "Không gọi được server/API. Kiểm tra Render, CORS hoặc route /check-key."
+    );
   }
+}
 
   return await res.json();
 }
@@ -159,52 +170,39 @@ function lockApp() {
 async function loginWithValue(value) {
   if (API_BASE && API_BASE.startsWith("http")) {
     setLoginMessage("", "Đang kiểm tra key online...");
+
     const result = await checkKeyOnline(value);
 
     if (result.success) {
       localStorage.setItem(STORAGE.KEY, value);
-      unlockApp("Key hết hạn: " + formatDate(result.expiresAt));
-      return;
-    }
 
-    throw new Error(result.message || "Key không hợp lệ");
-  }
+      if (result.expiresAt) {
+        localStorage.setItem(STORAGE.EXPIRE, new Date(result.expiresAt).getTime());
+      }
 
-  if (PASSWORDS[value]) {
-
-    const info = PASSWORDS[value];
-
-    const expireTime =
-        Date.now() +
-        info.days * 24 * 60 * 60 * 1000;
-
-    localStorage.setItem(STORAGE.KEY,value);
-    localStorage.setItem(STORAGE.EXPIRE,expireTime);
-
-    const expireDate = new Date(expireTime);
-
-    unlockApp(`
+      unlockApp(`
 ━━━━━━━━━━━━━━━━━━
 
 🔓 LOGIN SUCCESS
 
 🔑 Key : ${value}
 
-⏳ Thời hạn : ${info.days} ngày
-
-🎟 Slot : ${info.slot}
-
 🕒 Hết hạn lúc :
 
-${expireDate.toLocaleString("vi-VN")}
+${formatDate(result.expiresAt)}
+
+🎟 Slot : ${result.usedSlots || 0}/${result.maxSlots || "?"}
 
 ━━━━━━━━━━━━━━━━━━
 `);
 
-    return;
-}
+      return;
+    }
 
-  throw new Error("Sai mật khẩu. Vui lòng thử lại.");
+    throw new Error(result.message || "Key không hợp lệ");
+  }
+
+  throw new Error("API online chưa hoạt động.");
 }
 
 async function autoLogin() {
