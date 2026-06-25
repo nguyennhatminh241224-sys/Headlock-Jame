@@ -154,9 +154,12 @@ async function loginWithValue(value) {
     throw new Error(result.message || "Key không hợp lệ");
   }
 
-  if (PASSWORDS.includes(value)) {
+  if (PASSWORDS[value]) {
 
-    const expireTime = Date.now() + KEY_DURATION;
+   const days = PASSWORDS[value];
+
+const expireTime =
+    Date.now() + days * 24 * 60 * 60 * 1000;
 
     localStorage.setItem(STORAGE.KEY, value);
     localStorage.setItem(STORAGE.EXPIRE, expireTime);
