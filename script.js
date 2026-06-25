@@ -141,8 +141,6 @@ async function checkKeyOnline(key) {
   }
 }
 
-  return await res.json();
-}
 
 function unlockApp(message = "Đã mở khóa") {
   document.body.classList.add("unlocked");
