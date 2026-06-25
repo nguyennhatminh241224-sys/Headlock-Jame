@@ -1,169 +1,71 @@
-require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
-const PORT = process.env.PORT || 10000;
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'change-this-admin-token';
+const PORT = process.env.PORT || 3000;
+const DB_FILE = "./keys-db.json";
 
-app.use(cors({ origin: true }));
-app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors());
+app.use(express.json());
 
-const keySchema = new mongoose.Schema({
-  key: { type: String, required: true, unique: true, index: true },
-  days: { type: Number, default: 1 },
-  maxSlots: { type: Number, default: 1 },
-  devices: [{
-    deviceId: String,
-    firstUsedAt: Date,
-    lastUsedAt: Date
-  }],
-  active: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now },
-  expiresAt: { type: Date, default: null },
-  note: { type: String, default: '' }
-});
-
-const LicenseKey = mongoose.model('LicenseKey', keySchema);
-
-function requireAdmin(req, res, next) {
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-admin-token'];
-  if (!token || token !== ADMIN_TOKEN) {
-    return res.status(401).json({ success: false, message: 'Sai ADMIN_TOKEN.' });
+function readDB() {
+  if (!fs.existsSync(DB_FILE)) {
+    fs.writeFileSync(DB_FILE, JSON.stringify({ keys: {} }, null, 2));
   }
-  next();
+  return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
 }
 
-function makeKey(prefix = 'JAME') {
-  const a = Math.random().toString(36).slice(2, 8).toUpperCase();
-  const b = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return `${prefix}-${a}-${b}`;
+function saveDB(db) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 }
 
-app.get('/health', (req, res) => {
-  res.json({ success: true, message: 'API online is running.' });
+app.get("/", (req, res) => {
+  res.send("HEADLOCK KEY SERVER IS RUNNING");
 });
 
-app.post('/check-key', async (req, res) => {
-  try {
-    const key = String(req.body.key || '').trim();
-    const deviceId = String(req.body.deviceId || '').trim();
+app.post("/check-key", (req, res) => {
+  const { key, deviceId } = req.body;
 
-    if (!key || !deviceId) {
-      return res.status(400).json({ success: false, message: 'Thiếu key hoặc deviceId.' });
-    }
-
-    const license = await LicenseKey.findOne({ key });
-    if (!license) {
-      return res.status(404).json({ success: false, message: 'Key không tồn tại.' });
-    }
-
-    if (!license.active) {
-      return res.status(403).json({ success: false, message: 'Key đã bị khóa.' });
-    }
-
-    const now = new Date();
-
-    if (!license.expiresAt) {
-      license.expiresAt = new Date(now.getTime() + license.days * 24 * 60 * 60 * 1000);
-    }
-
-    if (license.expiresAt.getTime() < now.getTime()) {
-      license.active = false;
-      await license.save();
-      return res.status(403).json({ success: false, message: 'Key đã hết hạn.', expiresAt: license.expiresAt });
-    }
-
-    const foundDevice = license.devices.find(d => d.deviceId === deviceId);
-    if (foundDevice) {
-      foundDevice.lastUsedAt = now;
-    } else {
-      if (license.devices.length >= license.maxSlots) {
-        return res.status(403).json({
-          success: false,
-          message: 'Key đã đủ slot thiết bị.',
-          usedSlots: license.devices.length,
-          maxSlots: license.maxSlots
-        });
-      }
-      license.devices.push({ deviceId, firstUsedAt: now, lastUsedAt: now });
-    }
-
-    await license.save();
-
-    return res.json({
-      success: true,
-      message: 'Đăng nhập thành công.',
-      expiresAt: license.expiresAt,
-      usedSlots: license.devices.length,
-      maxSlots: license.maxSlots
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: 'Lỗi server.' });
+  if (!key || !deviceId) {
+    return res.json({ success: false, message: "Thiếu key hoặc mã thiết bị." });
   }
-});
 
-app.post('/admin/create-key', requireAdmin, async (req, res) => {
-  try {
-    const key = String(req.body.key || makeKey(req.body.prefix || 'JAME')).trim().toUpperCase();
-    const days = Number(req.body.days || 1);
-    const maxSlots = Number(req.body.maxSlots || req.body.slot || 1);
-    const note = String(req.body.note || '');
+  const db = readDB();
+  const keyData = db.keys[key];
 
-    const created = await LicenseKey.create({ key, days, maxSlots, note });
-    res.json({ success: true, key: created.key, days: created.days, maxSlots: created.maxSlots });
-  } catch (err) {
-    if (err.code === 11000) return res.status(409).json({ success: false, message: 'Key đã tồn tại.' });
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Không tạo được key.' });
+  if (!keyData) {
+    return res.json({ success: false, message: "Key không hợp lệ." });
   }
-});
 
-app.get('/admin/keys', requireAdmin, async (req, res) => {
-  const keys = await LicenseKey.find().sort({ createdAt: -1 }).limit(300).lean();
+  if (new Date() > new Date(keyData.expiresAt)) {
+    return res.json({ success: false, message: "Key đã hết hạn." });
+  }
+
+  if (!Array.isArray(keyData.devices)) {
+    keyData.devices = [];
+  }
+
+  if (!keyData.devices.includes(deviceId)) {
+    if (keyData.devices.length >= keyData.slots) {
+      return res.json({
+        success: false,
+        message: `Key đã đạt giới hạn ${keyData.slots} thiết bị.`
+      });
+    }
+
+    keyData.devices.push(deviceId);
+    saveDB(db);
+  }
+
   res.json({
     success: true,
-    keys: keys.map(k => ({
-      key: k.key,
-      days: k.days,
-      maxSlots: k.maxSlots,
-      usedSlots: k.devices?.length || 0,
-      active: k.active,
-      expiresAt: k.expiresAt,
-      createdAt: k.createdAt,
-      note: k.note
-    }))
+    expiresAt: keyData.expiresAt,
+    slotUsed: keyData.devices.length,
+    slotMax: keyData.slots
   });
 });
 
-app.post('/admin/delete-key', requireAdmin, async (req, res) => {
-  const key = String(req.body.key || '').trim().toUpperCase();
-  if (!key) return res.status(400).json({ success: false, message: 'Thiếu key.' });
-  const result = await LicenseKey.deleteOne({ key });
-  res.json({ success: true, deletedCount: result.deletedCount });
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
-
-app.post('/admin/disable-key', requireAdmin, async (req, res) => {
-  const key = String(req.body.key || '').trim().toUpperCase();
-  const license = await LicenseKey.findOneAndUpdate({ key }, { active: false }, { new: true });
-  if (!license) return res.status(404).json({ success: false, message: 'Không tìm thấy key.' });
-  res.json({ success: true, key: license.key, active: license.active });
-});
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-
-  .then(() => {
-    
-    app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-  })
-  .catch(err => {
-    
-    process.exit(1);
-  });
