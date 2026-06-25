@@ -9,7 +9,12 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const PASSWORDS = ["0333635135", "JameFF", "VIP2026", "Headlock"];
+const PASSWORDS = [
+  "0333635135",
+  "JameFF",
+  "VIP2026",
+  "Headlock"
+];
 
 const EXPIRE_DATE = "2026-07-25";
 
@@ -137,15 +142,18 @@ function lockApp() {
   setLoginMessage("", "Zalo hỗ trợ: 0333635135");
 }
 
-async function loginWithValue(value) {
-  if (API_BASE && API_BASE.startsWith("http")) {
-    setLoginMessage("", "Đang kiểm tra key online...");
-    const result = await checkKeyOnline(value);
+if (PASSWORDS.includes(value)) {
 
-    if (result.success) {
-      localStorage.setItem(STORAGE.KEY, value);
-      unlockApp("Key hết hạn: " + formatDate(result.expiresAt));
-      return;
+    if (new Date() > new Date(EXPIRE_DATE + "T23:59:59")) {
+        throw new Error("Key đã hết hạn.");
+    }
+
+    localStorage.setItem(STORAGE.KEY, value);
+    unlockApp("Hết hạn: " + EXPIRE_DATE);
+    return;
+}
+
+throw new Error("Sai mật khẩu.");
     }
 
     throw new Error(result.message || "Key không hợp lệ");
