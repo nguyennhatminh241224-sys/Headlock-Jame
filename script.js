@@ -9,11 +9,11 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const PASSWORDS = [
-  "0333635135",
-  "JameFF",
-  "VIP2026",
-  "Headlock"
+const OFFLINE_KEYS = [
+  { key: "0333635135", expiresAt: "2026-07-25T23:59:59+07:00" },
+  { key: "JameFF", expiresAt: "2026-07-25T23:59:59+07:00" },
+  { key: "VIP2026", expiresAt: "2026-12-31T23:59:59+07:00" },
+  { key: "Headlock", expiresAt: null }
 ];
 
 const STORAGE = {
