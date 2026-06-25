@@ -1,4 +1,7 @@
-const APP_PASSWORD = 'Jame-FF-OB54';
+const APP_PASSWORD = "Jame-FF-OB54"
+    "JameFF",
+    "VIP2026",
+    "Headlock;
 const passwordScreen = document.getElementById('passwordScreen');
 const mainApp = document.getElementById('mainApp');
 const passwordForm = document.getElementById('passwordForm');
