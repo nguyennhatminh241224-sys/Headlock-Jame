@@ -1,0 +1,19 @@
+{
+  "keys": {
+    "0333635135": {
+      "slots": 1,
+      "expiresAt": "2026-07-25T23:59:59",
+      "devices": []
+    },
+    "JameFF": {
+      "slots": 2,
+      "expiresAt": "2026-08-01T23:59:59",
+      "devices": []
+    },
+    "VIP2026": {
+      "slots": 3,
+      "expiresAt": "2026-09-01T23:59:59",
+      "devices": []
+    }
+  }
+}
