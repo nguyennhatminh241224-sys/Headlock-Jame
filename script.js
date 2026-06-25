@@ -11,6 +11,8 @@ const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = {
   "VIP2026": 1,      // 1 ngày
+  "VIP30": 30,       // 30 ngày
+  "JAME1THANG": 30   // 1 tháng
 };
 
 const STORAGE = {
