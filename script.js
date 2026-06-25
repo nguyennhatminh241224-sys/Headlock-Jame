@@ -5,7 +5,7 @@
 const API_BASE = "";
 
 // Link Get Key Free. Đổi link này thành trang get key của bạn.
-const GET_KEY_FREE_URL = "https://www.ngchiducdz.info.vn/free.html";
+const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
