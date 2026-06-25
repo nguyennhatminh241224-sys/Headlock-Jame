@@ -159,7 +159,7 @@ throw new Error("Sai mật khẩu.");
     throw new Error(result.message || "Key không hợp lệ");
   }
 
-const foundKey = OFFLINE_KEYS.find(item => item.key === value);
+const foundKey = PASSWORDS.find(item => item.key === value);
 
 if (foundKey) {
 
