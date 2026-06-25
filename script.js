@@ -1,9 +1,10 @@
 const PASSWORDS = [
-    "0333635135",
-    "JameFF",
-    "VIP2026",
-    "Headlock"
+  "0333635135",
+  "JameFF",
+  "VIP2026",
+  "Headlock"
 ];
+
 const passwordScreen = document.getElementById('passwordScreen');
 const mainApp = document.getElementById('mainApp');
 const passwordForm = document.getElementById('passwordForm');
@@ -13,6 +14,7 @@ const togglePassword = document.getElementById('togglePassword');
 
 function unlockApp() {
   document.body.classList.add('unlocked');
+  passwordScreen.classList.add('hidden');
   mainApp.classList.remove('locked');
   sessionStorage.setItem('headlock-jame-unlocked', 'true');
 }
@@ -23,9 +25,10 @@ if (sessionStorage.getItem('headlock-jame-unlocked') === 'true') {
 
 passwordForm.addEventListener('submit', (event) => {
   event.preventDefault();
+
   const value = passwordInput.value.trim();
 
-  if (value === APP_PASSWORD) {
+  if (PASSWORDS.includes(value)) {
     passwordError.textContent = '';
     passwordInput.value = '';
     unlockApp();
@@ -34,14 +37,24 @@ passwordForm.addEventListener('submit', (event) => {
 
   passwordError.textContent = 'Sai mật khẩu. Vui lòng thử lại.';
   passwordInput.select();
+
   passwordForm.animate(
-    [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }],
-    { duration: 260, iterations: 1 }
+    [
+      { transform: 'translateX(0)' },
+      { transform: 'translateX(-8px)' },
+      { transform: 'translateX(8px)' },
+      { transform: 'translateX(0)' }
+    ],
+    {
+      duration: 260,
+      iterations: 1
+    }
   );
 });
 
 togglePassword.addEventListener('click', () => {
   const isPassword = passwordInput.type === 'password';
+
   passwordInput.type = isPassword ? 'text' : 'password';
   togglePassword.textContent = isPassword ? '🙈' : '👁';
 });
@@ -80,18 +93,21 @@ function runBoost() {
   openModal(boostModal);
 
   let index = 0;
+
   const timer = setInterval(() => {
     terminal.textContent += terminalLines[index] + '\n';
     index++;
 
     if (index >= terminalLines.length) {
       clearInterval(timer);
-      setTimeout(() => boostDone.classList.remove('hidden'), 450);
+      setTimeout(() => {
+        boostDone.classList.remove('hidden');
+      }, 450);
     }
   }, 420);
 }
 
-actions.forEach(button => {
+actions.forEach((button) => {
   button.addEventListener('click', () => {
     const action = button.dataset.action;
 
@@ -112,20 +128,22 @@ actions.forEach(button => {
   });
 });
 
-document.querySelectorAll('[data-close]').forEach(btn => {
+document.querySelectorAll('[data-close]').forEach((btn) => {
   btn.addEventListener('click', () => {
     closeModal(versionModal);
     closeModal(boostModal);
   });
 });
 
-document.querySelectorAll('.modal').forEach(modal => {
-  modal.addEventListener('click', event => {
-    if (event.target === modal) closeModal(modal);
+document.querySelectorAll('.modal').forEach((modal) => {
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeModal(modal);
+    }
   });
 });
 
-document.querySelectorAll('.version-btn').forEach(btn => {
+document.querySelectorAll('.version-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     statusText.textContent = `${btn.dataset.version} selected. HeadLock Jame ready!`;
     mainToggle.checked = true;
