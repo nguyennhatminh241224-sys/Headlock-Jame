@@ -603,7 +603,7 @@ function createWebOverlay(size, color) {
     z-index: 999999;
   `;
 
-  // Vẽ dấu cộng nhỏ ở giữa tâm ảo công nghệ overlay
+  // Vẽ dấu cộng nhỏ ở giữa tâm ảo công nghệ overlayr
   const styleEl = document.createElement("style");
   styleEl.id = "globalScreenCrosshairStyle";
   styleEl.textContent = `
