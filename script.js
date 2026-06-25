@@ -9,9 +9,7 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const PASSWORDS = [
-  "VIP-2026"
-];
+const PASSWORDS = [ "VIP-2026"];
 
 const STORAGE = {
   DEVICE: "headlock-jame-device-id",
