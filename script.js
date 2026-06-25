@@ -1,5 +1,5 @@
 // ================= HEADLOCK JAME CONFIG =================
-const API_BASE = "";
+const API_BASE = "https://headlock-jame-production.up.railway.app";
 
 // Cấu hình riêng từng key: slot + hạn dùng
 const KEY_CONFIGS = {
@@ -241,24 +241,32 @@ function lockApp() {
 }
 
 async function loginWithValue(value) {
-  if (API_BASE && API_BASE.startsWith("http")) {
-    setLoginMessage("", "Đang kiểm tra key online...");
-    const result = await checkKeyOnline(value);
+if (!API_BASE || !API_BASE.startsWith("http")) {
+throw new Error("Chưa cấu hình API_BASE.");
+}
 
-    if (result.success) {
-      localStorage.setItem(STORAGE.KEY, value);
+setLoginMessage("", "Đang kiểm tra key online...");
 
-      const slotText =
-        result.slotUsed && result.slotMax
-          ? ` | Slot: ${result.slotUsed}/${result.slotMax}`
-          : "";
+const result = await checkKeyOnline(value);
 
-      unlockApp("Key hết hạn: " + formatDate(result.expiresAt) + slotText);
-      return;
-    }
+if (result.success) {
+localStorage.setItem(STORAGE.KEY, value);
 
-    throw new Error(result.message || "Key không hợp lệ");
-  }
+```
+const slotText =
+  result.slotUsed && result.slotMax
+    ? ` | Slot: ${result.slotUsed}/${result.slotMax}`
+    : "";
+
+unlockApp("Key hết hạn: " + formatDate(result.expiresAt) + slotText);
+return;
+```
+
+}
+
+throw new Error(result.message || "Key không hợp lệ");
+}
+
 
   if (PASSWORDS.includes(value)) {
     const expireDateTime = getExpireDateTimeByKey(value);
@@ -303,23 +311,29 @@ async function autoLogin() {
 }
 
 function startExpireWatcher() {
-  setInterval(() => {
-    const savedKey = localStorage.getItem(STORAGE.KEY);
+setInterval(async () => {
+const savedKey = localStorage.getItem(STORAGE.KEY);
 
-    if (!savedKey) return;
-    if (!PASSWORDS.includes(savedKey)) return;
+```
+if (!savedKey) return;
+if (sessionStorage.getItem(STORAGE.SESSION) !== "true") return;
 
-    const expireDateTime = getExpireDateTimeByKey(savedKey);
-    const expire = new Date(expireDateTime);
+try {
+  const result = await checkKeyOnline(savedKey);
 
-    if (Number.isNaN(expire.getTime())) return;
-
-    if (new Date() > expire) {
-      lockApp();
-      setLoginMessage("err", "Key đã hết hạn. Vui lòng lấy key mới.");
-    }
-  }, 1000);
+  if (!result.success) {
+    lockApp();
+    setLoginMessage("err", result.message || "Key không còn hợp lệ.");
+  }
+} catch {
+  lockApp();
+  setLoginMessage("err", "Không kết nối được server kiểm tra key.");
 }
+```
+
+}, 60000);
+}
+
 
 passwordForm.addEventListener("submit", async (event) => {
   event.preventDefault();
