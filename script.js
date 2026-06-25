@@ -1,6 +1,6 @@
 // ================= HEADLOCK JAME CONFIG =================
 // Nếu dùng API online riêng, đổi API_BASE thành link server của bạn.
-// Ví dụ: const API_BASE = "https://headlock-jame.onrender.com/";
+// Ví dụ: const API_BASE = "";
 // Nếu để rỗng "", web sẽ dùng mật khẩu offline trong PASSWORDS.
 const API_BASE = "https://headlock-jame.onrender.com";
 
