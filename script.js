@@ -9,12 +9,9 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const PASSWORDS.includes(...)
-  { key: "0333635135", expiresAt: "2026-07-25T23:59:59+07:00" },
-  { key: "JameFF", expiresAt: "2026-07-25T23:59:59+07:00" },
-  { key: "VIP2026", expiresAt: "2026-12-31T23:59:59+07:00" },
-  { key: "Headlock", expiresAt: null }
-];
+const PASSWORDS = ["0333635135", "JameFF", "VIP2026", "Headlock"];
+
+const EXPIRE_DATE = "2026-07-25";
 
 const STORAGE = {
   DEVICE: "headlock-jame-device-id",
@@ -155,6 +152,24 @@ async function loginWithValue(value) {
   }
 
 const foundKey = OFFLINE_KEYS.find(item => item.key === value);
+
+if (foundKey) {
+
+    if (foundKey.expiresAt && new Date() > new Date(foundKey.expiresAt)) {
+        throw new Error("Key đã hết hạn.");
+    }
+
+    localStorage.setItem(STORAGE.KEY, value);
+
+    unlockApp(
+        "Key hết hạn: " +
+        (foundKey.expiresAt ? formatDate(foundKey.expiresAt) : "Vĩnh viễn")
+    );
+
+    return;
+}
+
+throw new Error("Sai mật khẩu.");
 
 if (foundKey) {
 
