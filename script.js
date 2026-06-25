@@ -10,9 +10,22 @@ const GET_KEY_FREE_URL = "https://link4m.net/LrM89eO";
 const CONTACT_ZALO = "https://zalo.me/0333635135";
 
 const PASSWORDS = {
-  "VIP2026": 1,      // 1 ngày
-  "VIP30": 30,       // 30 ngày
-  "JAME1THANG": 30   // 1 tháng
+
+  "VIP2026": {
+      days:1,
+      slot:200
+  },
+
+  "VIP30": {
+      days:30,
+      slot:100
+  },
+
+  "VIP365": {
+      days:365,
+      slot:20
+  }
+
 };
 
 const STORAGE = {
@@ -137,10 +150,11 @@ function lockApp() {
   logoutBtn.classList.add("hidden");
   passwordInput.value = "";
 
-sessionStorage.removeItem(STORAGE.SESSION);
-localStorage.removeItem(STORAGE.KEY);
-localStorage.removeItem(STORAGE.EXPIRE);
-setLoginMessage("", "Zalo hỗ trợ: 0333635135");
+  sessionStorage.removeItem(STORAGE.SESSION);
+  localStorage.removeItem(STORAGE.KEY);
+  localStorage.removeItem(STORAGE.EXPIRE);
+  setLoginMessage("", "Zalo hỗ trợ: 0333635135");
+}
 
 async function loginWithValue(value) {
   if (API_BASE && API_BASE.startsWith("http")) {
