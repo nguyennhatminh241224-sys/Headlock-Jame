@@ -1,13 +1,13 @@
 {
   "settings": {
-    "freeKeyUrl": "https://link4m.net/lnZEeK4t",
+    "freeKeyUrl": "https://link4m.net/EwTnlq",
     "contactUrl": "https://zalo.me/0333635135"
   },
 
   "keys": {
-    "Jame-FREEKEY": {
-      "type": "7day",
-      "expiresAt": "2026-12-31T23:59:59",
+    "Jame-FREEKEY1": {
+      "type": "1day",
+      "expiresAt": "2026-06-27T01:59:59",
       "maxDevices": 200,
       "revoked": false,
       "devices": []
