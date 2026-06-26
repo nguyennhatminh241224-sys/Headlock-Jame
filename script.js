@@ -7,7 +7,7 @@ if (MAINTENANCE_MODE) {
     document.body.innerHTML = `
       <div style="position:fixed;inset:0;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
         <div>
-          <div style="font-size:54px;font-weight:bold;color:#67d844;margin-bottom:20px;">HEADLOCK</div>
+          <div style="font-size:54px;font-weight:bold;color:#facc15;margin-bottom:20px;">HEADLOCK</div>
           <h2 style="margin:0 0 15px">APP ĐANG NÂNG CẤP</h2>
           <p style="opacity:.8">Phiên bản mới đang được cập nhật.<br>Vui lòng quay lại sau.</p>
         </div>
@@ -23,7 +23,6 @@ const STORAGE = {
   DEVICE: "headlock-jame-device-id",
   KEY: "headlock-jame-key",
   SESSION: "headlock-jame-unlocked",
-  VERSION: "headlock-jame-freefire-version",
   CROSSHAIR_SIZE: "crosshair_size",
   CROSSHAIR_COLOR: "crosshair_color",
   CROSSHAIR_STYLE: "crosshair_style"
@@ -142,8 +141,10 @@ function lockApp() {
   if (mainApp) mainApp.classList.add("locked");
   if (logoutBtn) logoutBtn.classList.add("hidden");
   if (passwordInput) passwordInput.value = "";
+
   sessionStorage.removeItem(STORAGE.SESSION);
   localStorage.removeItem(STORAGE.KEY);
+
   setLoginMessage("", "Zalo hỗ trợ: 0333635135");
 }
 
@@ -430,6 +431,54 @@ if (crosshairOffBtn) {
   });
 }
 
+
+// ================= LIVE DASHBOARD STATS =================
+
+const statOnline = document.getElementById("statOnline");
+const statActiveKeys = document.getElementById("statActiveKeys");
+const statToday = document.getElementById("statToday");
+const statServer = document.getElementById("statServer");
+const statUpdated = document.getElementById("statUpdated");
+const refreshStatsBtn = document.getElementById("refreshStatsBtn");
+
+function setStat(el, value) {
+  if (el) el.textContent = value ?? "--";
+}
+
+async function loadStats() {
+  try {
+    setStat(statServer, "...");
+    const res = await fetch(API_BASE + "/stats", { method: "GET" });
+    if (!res.ok) throw new Error("Stats API lỗi");
+
+    const data = await res.json();
+
+    setStat(statOnline, data.online ?? 0);
+    setStat(statActiveKeys, data.activeKeys ?? 0);
+    setStat(statToday, data.today ?? 0);
+    setStat(statServer, data.server || "Online");
+
+    if (statUpdated) {
+      const now = new Date();
+      statUpdated.textContent = "Cập nhật: " + now.toLocaleTimeString("vi-VN");
+    }
+  } catch (error) {
+    setStat(statServer, "Offline");
+    if (statUpdated) statUpdated.textContent = "Không đồng bộ được thống kê.";
+  }
+}
+
+if (refreshStatsBtn) {
+  refreshStatsBtn.addEventListener("click", () => {
+    loadStats();
+    showToast("Đang tải thống kê...");
+  });
+}
+
+setInterval(loadStats, 30000);
+
+
 loadCrosshair();
+loadStats();
 startExpireWatcher();
 autoLogin();
