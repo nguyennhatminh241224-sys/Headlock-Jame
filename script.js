@@ -2,7 +2,7 @@
 const API_BASE = "https://headlock-jame-production.up.railway.app";
 
 // ================= MAINTENANCE =================
-const MAINTENANCE_MODE = false;
+const MAINTENANCE_MODE = True; false
 
 if (MAINTENANCE_MODE) {
   document.addEventListener("DOMContentLoaded", () => {
