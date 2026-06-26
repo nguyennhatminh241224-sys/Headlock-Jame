@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <title>Headlock Jame</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-orb orb-a"></div>
+  <div class="bg-orb orb-b"></div>
+  <div class="bg-grid"></div>
+
+  <section class="gate" id="passwordScreen">
+    <div class="gate-card">
+      <div class="brand-logo">
+        <img src="logo.png" alt="Headlock Jame">
+      </div>
+        
+      <div class="badge">Secure Access</div>
+      <h1>HEADLOCK JAME</h1>
+      <p class="byline">BY JAME FF</p>
+
+      <form id="passwordForm" class="login-form">
+        <label for="passwordInput">Nhập mật khẩu hoặc Key Mua</label>
+        <div class="input-row">
+          <input id="passwordInput" type="password" placeholder="Password / Key" autocomplete="off" required />
+          <button id="togglePassword" type="button">👁</button>
+        </div>
+
+        <div id="passwordError" class="message">Zalo hỗ trợ: 0333635135</div>
+        <button class="primary-btn" type="submit">Kích Hoạt Jame</button>
+      </form>
+
+      <div class="gate-actions">
+        <button id="getKeyBtn" type="button">Nhận Key Miễn Phí</button>
+        <button id="contactBtn" type="button">Liên hệ mua key</button>
+        <button id="logoutBtn" class="hidden" type="button">Đăng xuất</button>
+      </div>
+    </div>
+  </section>
+
+  <main id="mainApp" class="app locked">
+    <header class="topbar">
+      <button class="ghost-btn" type="button" onclick="history.back()">← Back</button>
+      <div class="title-block">
+        <h2>HEADLOCK JAME</h2>
+        <p>BY JAME FF</p>
+      </div>
+      <button class="menu-btn" id="menuBtn" type="button">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <section class="hero-card">
+      <div class="hero-logo">
+        <img src="logo.png" alt="Headlock Jame">
+      </div>
+      <div>
+        <p class="small">Premium Panel</p>
+        <h1>Headlock Jame</h1>
+        <p class="license" id="licenseText">Đã mở khóa</p>
+      </div>
+    </section>
+
+    <section class="feature-grid">
+      <button class="feature-card" data-action="reg" type="button">
+        <span>🎯</span>
+        <strong>REG FILES</strong>
+      </button>
+
+      <button class="feature-card" data-action="boost" type="button">
+        <span>🚀</span>
+        <strong>BOST RAM</strong>
+        <em>Dọn bộ nhớ giả lập</em>
+      </button>
+
+      <button class="feature-card" data-action="headlock" type="button">
+        <span>💀</span>
+        <strong>HEADLOCK</strong>
+        <em>Jame FF mode</em>
+      </button>
+
+      <button class="feature-card" data-action="fix" type="button">
+        <span>⚙️</span>
+        <strong>FIX RUNG</strong>
+        <em>Ổn định thao tác</em>
+      </button>
+
+      <button class="feature-card" data-action="aimbody" type="button">
+        <span>🎯</span>
+        <strong>AIMBODY</strong>
+        <em>Tính Năng AIM</em>
+      </button>
+
+      <button class="feature-card" data-action="crosshair" type="button">
+        <span>⊕</span>
+        <strong>TÂM ẢO</strong>
+        <em>Mô phỏng trong app[Sớm Ra Mắt]</em>
+      </button>
+    </section>
+
+    <section class="start-box">
+      <h3>STARTING FILES</h3>
+      <div class="switch-row">
+        <button class="pill active" id="offBtn" type="button">OFF</button>
+        <button class="pill" id="onBtn" type="button">ON</button>
+      </div>
+      <p id="statusText">Panel is OFF</p>
+    </section>
+  </main>
+
+  <aside class="info-panel" id="infoPanel">
+    <div class="info-head">
+      <h2>Info</h2>
+      <button id="closeInfo" type="button">Done</button>
+    </div>
+
+    <div class="info-item">
+      <div>
+        <strong>Mua KEY Liên Hệ Jame FF</strong>
+        <p>Zalo 0333635135</p>
+      </div>
+      <span>☎</span>
+    </div>
+
+    <div class="info-item">
+      <div>
+        <strong>FaceBook</strong>
+        <p>Jame FF</p>
+      </div>
+      <span>f</span>
+    </div>
+
+    <div class="info-item">
+      <div>
+        <strong>TikTok</strong>
+        <p>https://www.tiktok.com/@jame.ff.11</p>
+      </div>
+      <span>♪</span>
+    </div>
+
+    <button class="full-btn" id="infoGetKeyBtn" type="button">Get Key Free</button>
+
+    <div class="copyright">
+      <strong>Copyright belongs to Jame FF</strong>
+      <p>Thank For Using</p>
+    </div>
+  </aside>
+
+  <section class="modal hidden" id="versionModal" aria-hidden="true">
+    <div class="modal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h3>Chọn phiên bản Free Fire</h3>
+
+      <div class="version-grid">
+        <button class="version-btn active" data-version="Free Fire" type="button">🔥 Free Fire</button>
+        <button class="version-btn" data-version="Free Fire Max" type="button">⚡ Free Fire Max</button>
+      </div>
+
+      <button class="modal-btn success" id="successBtn" type="button">✓ HeadLock Was Successful!</button>
+      <button class="modal-btn danger" id="dangerBtn" type="button">✕ Turn off HeadLock</button>
+    </div>
+  </section>
+
+  <section class="modal hidden" id="boostModal" aria-hidden="true">
+    <div class="modal-card terminal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h3>🚀 Tối ưu máy</h3>
+      <pre id="terminal"></pre>
+      <div class="done hidden" id="boostDone">
+        <strong>✓ BOST RAM thành công!</strong>
+        <button class="modal-btn success" type="button" data-close>Đóng</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="modal hidden" id="crosshairModal" aria-hidden="true">
+    <div class="modal-card">
+      <button class="close" type="button" data-close>×</button>
+      <h3>⊕ Tâm ảo mô phỏng</h3>
+
+      <div class="crosshair-preview">
+        <div id="crosshairDot" class="crosshair-dot"></div>
+      </div>
+
+      <label class="range-label">
+        Kích thước
+        <input id="crosshairSize" type="range" min="12" max="80" value="34">
+      </label>
+
+      <label class="range-label">
+        Màu tâm
+        <input id="crosshairColor" type="color" value="#00ff88">
+      </label>
+
+      <p class="license">Sẽ Sớm Ra Mắt Tính Năng Này Trong Game</p>
+    </div>
+  </section>
+
+  <div class="overlay hidden" id="overlay"></div>
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
