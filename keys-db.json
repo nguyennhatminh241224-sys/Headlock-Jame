@@ -38,3 +38,18 @@
     }
   }
 }
+{
+  "settings": {
+    "freeKeyUrl": "https://link4m.net/lnZEeK4t",
+    "contactUrl": "https://zalo.me/0333635135"
+  },
+  "keys": {
+    "Jame-FREEKEY": {
+      "type": "7day",
+      "expiresAt": "2026-12-31T23:59:59",
+      "maxDevices": 200,
+      "revoked": false,
+      "devices": []
+    }
+  }
+}
