@@ -14,15 +14,97 @@ function readDB() {
     fs.writeFileSync(DB_FILE, JSON.stringify({ keys: {} }, null, 2));
   }
 
-  return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+  try {
+    return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+  } catch (error) {
+    return { keys: {} };
+  }
 }
 
 function saveDB(db) {
   fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 }
 
+function isExpired(keyData) {
+  if (!keyData.expiresAt) return false;
+  return new Date() > new Date(keyData.expiresAt);
+}
+
+function getMaxDevices(keyData) {
+  return Number(keyData.maxDevices || keyData.slots || 1);
+}
+
+function normalizeDevices(keyData) {
+  if (!Array.isArray(keyData.devices)) keyData.devices = [];
+
+  keyData.devices = keyData.devices.map((device) => {
+    if (typeof device === "string") {
+      return {
+        id: device,
+        name: "Android Device",
+        firstUsedAt: new Date().toISOString(),
+        lastUsedAt: new Date().toISOString()
+      };
+    }
+
+    return {
+      id: device.id,
+      name: device.name || "Android Device",
+      firstUsedAt: device.firstUsedAt || device.createdAt || new Date().toISOString(),
+      lastUsedAt: device.lastUsedAt || device.firstUsedAt || new Date().toISOString()
+    };
+  }).filter((device) => device.id);
+}
+
 app.get("/", (req, res) => {
   res.send("HEADLOCK KEY SERVER IS RUNNING");
+});
+
+app.get("/stats", (req, res) => {
+  const db = readDB();
+  const keys = db.keys || {};
+  const now = new Date();
+  const todayKey = now.toISOString().slice(0, 10);
+  const onlineWindowMs = 10 * 60 * 1000;
+
+  let activeKeys = 0;
+  let today = 0;
+  let totalDevices = 0;
+  const onlineDeviceIds = new Set();
+
+  Object.entries(keys).forEach(([key, keyData]) => {
+    if (!keyData) return;
+
+    normalizeDevices(keyData);
+
+    const revoked = keyData.revoked === true;
+    const expired = isExpired(keyData);
+
+    if (!revoked && !expired) activeKeys++;
+
+    keyData.devices.forEach((device) => {
+      totalDevices++;
+
+      const firstUsedAt = device.firstUsedAt || "";
+      if (firstUsedAt.slice(0, 10) === todayKey) today++;
+
+      const last = new Date(device.lastUsedAt || 0);
+      if (!Number.isNaN(last.getTime()) && now - last <= onlineWindowMs) {
+        onlineDeviceIds.add(device.id);
+      }
+    });
+  });
+
+  res.json({
+    success: true,
+    online: onlineDeviceIds.size,
+    activeKeys,
+    today,
+    totalDevices,
+    server: "Online",
+    railway: "Online",
+    updatedAt: now.toISOString()
+  });
 });
 
 app.post("/check-key", (req, res) => {
@@ -36,7 +118,7 @@ app.post("/check-key", (req, res) => {
   }
 
   const db = readDB();
-  const keyData = db.keys[key];
+  const keyData = db.keys?.[key];
 
   if (!keyData) {
     return res.json({
@@ -52,27 +134,21 @@ app.post("/check-key", (req, res) => {
     });
   }
 
-  const maxDevices = Number(keyData.maxDevices || keyData.slots || 1);
-
-  if (!Array.isArray(keyData.devices)) {
-    keyData.devices = [];
-  }
-
-  const expiresAt = keyData.expiresAt || null;
-
-  if (expiresAt && new Date() > new Date(expiresAt)) {
+  if (isExpired(keyData)) {
     return res.json({
       success: false,
       message: "Key đã hết hạn."
     });
   }
 
-  const oldDevice = keyData.devices.find((d) => {
-    if (typeof d === "string") return d === deviceId;
-    return d.id === deviceId;
-  });
+  normalizeDevices(keyData);
 
-  if (!oldDevice) {
+  const maxDevices = getMaxDevices(keyData);
+  const now = new Date().toISOString();
+
+  let device = keyData.devices.find((d) => d.id === deviceId);
+
+  if (!device) {
     if (keyData.devices.length >= maxDevices) {
       return res.json({
         success: false,
@@ -80,24 +156,25 @@ app.post("/check-key", (req, res) => {
       });
     }
 
-    keyData.devices.push({
+    device = {
       id: deviceId,
       name: deviceName || "Android Device",
-      firstUsedAt: new Date().toISOString(),
-      lastUsedAt: new Date().toISOString()
-    });
+      firstUsedAt: now,
+      lastUsedAt: now
+    };
 
-    saveDB(db);
-  } else if (typeof oldDevice === "object") {
-    oldDevice.lastUsedAt = new Date().toISOString();
-    oldDevice.name = deviceName || oldDevice.name || "Android Device";
-    saveDB(db);
+    keyData.devices.push(device);
+  } else {
+    device.lastUsedAt = now;
+    device.name = deviceName || device.name || "Android Device";
   }
+
+  saveDB(db);
 
   return res.json({
     success: true,
     message: "Kích hoạt thành công",
-    expiresAt: expiresAt,
+    expiresAt: keyData.expiresAt || null,
     slotUsed: keyData.devices.length,
     slotMax: maxDevices,
     type: keyData.type || "custom"
