@@ -2,8 +2,15 @@
   "keys": {
     "Jame-FREEKEY": {
       "type": "7day",
+      "slots": 200,
       "expiresAt": "2026-06-27T11:59:59",
-      "maxDevices": 1,
+      "devices": [],
+      "revoked": false
+    },
+    "JAME-VIP": {
+      "type": "lifetime",
+      "slots": 1,
+      "expiresAt": null,
       "devices": [],
       "revoked": false
     }
