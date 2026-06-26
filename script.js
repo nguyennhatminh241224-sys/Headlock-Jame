@@ -16,17 +16,24 @@ if (MAINTENANCE_MODE) {
   throw new Error("Maintenance");
 }
 
-const GET_KEY_FREE_URL = "https://link4m.net/lnZEeK4t";
-const CONTACT_ZALO = "https://zalo.me/0333635135";
+let GET_KEY_FREE_URL = "https://link4m.net/lnZEeK4t";
+let CONTACT_ZALO = "https://zalo.me/0333635135";
 
-const STORAGE = {
-  DEVICE: "headlock-jame-device-id",
-  KEY: "headlock-jame-key",
-  SESSION: "headlock-jame-unlocked",
-  CROSSHAIR_SIZE: "crosshair_size",
-  CROSSHAIR_COLOR: "crosshair_color",
-  CROSSHAIR_STYLE: "crosshair_style"
-};
+async function loadRemoteSettings() {
+  try {
+    const res = await fetch(API_BASE + "/settings");
+    const data = await res.json();
+
+    if (data.success) {
+      GET_KEY_FREE_URL = data.freeKeyUrl || GET_KEY_FREE_URL;
+      CONTACT_ZALO = data.contactUrl || CONTACT_ZALO;
+    }
+  } catch (e) {
+    console.warn("Không tải được settings online", e);
+  }
+}
+
+loadRemoteSettings();
 
 const passwordScreen = document.getElementById("passwordScreen");
 const mainApp = document.getElementById("mainApp");
