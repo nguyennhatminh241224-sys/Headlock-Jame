@@ -1,24 +1,16 @@
 {
+  "settings": {
+    "freeKeyUrl": "https://link4m.net/lnZEeK4t",
+    "contactUrl": "https://zalo.me/0333635135"
+  },
+
   "keys": {
     "Jame-FREEKEY": {
       "type": "7day",
       "expiresAt": "2026-12-31T23:59:59",
       "maxDevices": 200,
       "revoked": false,
-      "devices": [
-        {
-          "id": "android_001",
-          "name": "Samsung Galaxy A54",
-          "firstUsedAt": "2026-06-26T08:30:15",
-          "lastUsedAt": "2026-06-26T14:18:42"
-        },
-        {
-          "id": "android_002",
-          "name": "Redmi Note 13",
-          "firstUsedAt": "2026-06-26T09:11:08",
-          "lastUsedAt": "2026-06-26T14:17:55"
-        }
-      ]
+      "devices": []
     },
 
     "VIP-30DAY-001": {
@@ -33,21 +25,6 @@
       "type": "lifetime",
       "expiresAt": "2099-12-31T23:59:59",
       "maxDevices": 5,
-      "revoked": false,
-      "devices": []
-    }
-  }
-}
-{
-  "settings": {
-    "freeKeyUrl": "https://link4m.net/lnZEeK4t",
-    "contactUrl": "https://zalo.me/0333635135"
-  },
-  "keys": {
-    "Jame-FREEKEY": {
-      "type": "7day",
-      "expiresAt": "2026-12-31T23:59:59",
-      "maxDevices": 200,
       "revoked": false,
       "devices": []
     }
