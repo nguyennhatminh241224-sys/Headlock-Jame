@@ -11,13 +11,43 @@ app.use(express.json());
 
 function readDB() {
   if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ keys: {} }, null, 2));
+    fs.writeFileSync(
+      DB_FILE,
+      JSON.stringify(
+        {
+          settings: {
+            freeKeyUrl: "https://link4m.net/lnZEeK4t",
+            contactUrl: "https://zalo.me/0333635135"
+          },
+          keys: {}
+        },
+        null,
+        2
+      )
+    );
   }
 
   try {
-    return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+    const db = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
+
+    if (!db.settings) {
+      db.settings = {
+        freeKeyUrl: "https://link4m.net/lnZEeK4t",
+        contactUrl: "https://zalo.me/0333635135"
+      };
+    }
+
+    if (!db.keys) db.keys = {};
+
+    return db;
   } catch (error) {
-    return { keys: {} };
+    return {
+      settings: {
+        freeKeyUrl: "https://link4m.net/lnZEeK4t",
+        contactUrl: "https://zalo.me/0333635135"
+      },
+      keys: {}
+    };
   }
 }
 
@@ -37,27 +67,43 @@ function getMaxDevices(keyData) {
 function normalizeDevices(keyData) {
   if (!Array.isArray(keyData.devices)) keyData.devices = [];
 
-  keyData.devices = keyData.devices.map((device) => {
-    if (typeof device === "string") {
-      return {
-        id: device,
-        name: "Android Device",
-        firstUsedAt: new Date().toISOString(),
-        lastUsedAt: new Date().toISOString()
-      };
-    }
+  keyData.devices = keyData.devices
+    .map((device) => {
+      if (typeof device === "string") {
+        return {
+          id: device,
+          name: "Android Device",
+          firstUsedAt: new Date().toISOString(),
+          lastUsedAt: new Date().toISOString()
+        };
+      }
 
-    return {
-      id: device.id,
-      name: device.name || "Android Device",
-      firstUsedAt: device.firstUsedAt || device.createdAt || new Date().toISOString(),
-      lastUsedAt: device.lastUsedAt || device.firstUsedAt || new Date().toISOString()
-    };
-  }).filter((device) => device.id);
+      return {
+        id: device.id,
+        name: device.name || "Android Device",
+        firstUsedAt:
+          device.firstUsedAt || device.createdAt || new Date().toISOString(),
+        lastUsedAt:
+          device.lastUsedAt ||
+          device.firstUsedAt ||
+          new Date().toISOString()
+      };
+    })
+    .filter((device) => device.id);
 }
 
 app.get("/", (req, res) => {
   res.send("HEADLOCK KEY SERVER IS RUNNING");
+});
+
+app.get("/settings", (req, res) => {
+  const db = readDB();
+
+  res.json({
+    success: true,
+    freeKeyUrl: db.settings?.freeKeyUrl || "https://link4m.net/lnZEeK4t",
+    contactUrl: db.settings?.contactUrl || "https://zalo.me/0333635135"
+  });
 });
 
 app.get("/stats", (req, res) => {
