@@ -426,7 +426,7 @@ actions.forEach((card) => {
 
     if (action === "crosshair") {
       openModal(crosshairModal);
-      showToast("Mở tâm ảo mô phỏng");
+      showToast("Tâm ảo đã sẵn sàng");
       return;
     }
 
@@ -568,73 +568,111 @@ if (crosshairSize && crosshairColor) {
   updateCrosshairPreview();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const crosshairSizeInput = document.getElementById("crosshairSize");
-  const crosshairColorInput = document.getElementById("crosshairColor");
-  const btnOverlayOn = document.getElementById("btnOverlayOn");
-  const btnOverlayOff = document.getElementById("btnOverlayOff");
-  const nativeCrosshairDot = document.getElementById("crosshairDot");
+// ================= REAL ANDROID CROSSHAIR =================
 
-  function updateNativeCrosshair() {
-    if (!crosshairSizeInput || !crosshairColorInput) return;
+const crosshairOnBtn = document.getElementById("crosshairOnBtn");
+const crosshairOffBtn = document.getElementById("crosshairOffBtn");
 
-    const size = crosshairSizeInput.value;
-    const color = crosshairColorInput.value;
+function hasAndroidBridge() {
+    return typeof AndroidBridge !== "undefined";
+}
 
-    if (nativeCrosshairDot) {
-      nativeCrosshairDot.style.width = size + "px";
-      nativeCrosshairDot.style.height = size + "px";
-      nativeCrosshairDot.style.backgroundColor = color;
-    }
+function updateNativeCrosshair() {
+
+    if (!crosshairSize || !crosshairColor) return;
+
+    const size = parseInt(crosshairSize.value, 10);
+    const color = crosshairColor.value;
+
+    updateCrosshairPreview();
+
+    localStorage.setItem("crosshair_size", size);
+    localStorage.setItem("crosshair_color", color);
 
     if (
-      typeof AndroidBridge !== "undefined" &&
-      AndroidBridge.updateCrosshair
+        hasAndroidBridge() &&
+        typeof AndroidBridge.updateCrosshair === "function"
     ) {
-      AndroidBridge.updateCrosshair(parseInt(size), color);
+        AndroidBridge.updateCrosshair(size, color);
     }
-  }
 
-  if (crosshairSizeInput) {
-    crosshairSizeInput.addEventListener("input", updateNativeCrosshair);
-  }
+}
 
-  if (crosshairColorInput) {
-    crosshairColorInput.addEventListener("input", updateNativeCrosshair);
-  }
+function loadCrosshair() {
 
-  if (btnOverlayOn) {
-    btnOverlayOn.addEventListener("click", () => {
-      if (btnOverlayOff) btnOverlayOff.classList.remove("active");
-      btnOverlayOn.classList.add("active");
+    const size = localStorage.getItem("crosshair_size");
+    const color = localStorage.getItem("crosshair_color");
 
-      if (
-        typeof AndroidBridge !== "undefined" &&
-        AndroidBridge.setCrosshairVisibility
-      ) {
-        AndroidBridge.setCrosshairVisibility(true);
-      }
+    if (size) {
+        crosshairSize.value = size;
+    }
+
+    if (color) {
+        crosshairColor.value = color;
+    }
+
+    updateNativeCrosshair();
+
+}
+
+if (crosshairSize) {
+
+    crosshairSize.addEventListener("input", updateNativeCrosshair);
+
+}
+
+if (crosshairColor) {
+
+    crosshairColor.addEventListener("input", updateNativeCrosshair);
+
+}
+
+if (crosshairOnBtn) {
+
+    crosshairOnBtn.addEventListener("click", () => {
+
+        updateNativeCrosshair();
+
+        if (
+            hasAndroidBridge() &&
+            typeof AndroidBridge.startCrosshair === "function"
+        ) {
+
+            AndroidBridge.startCrosshair();
+
+            showToast("Đã bật tâm ảo");
+
+        } else {
+
+            showToast("Chỉ hoạt động trong app Android");
+
+        }
+
     });
-  }
 
-  if (btnOverlayOff) {
-    btnOverlayOff.addEventListener("click", () => {
-      if (btnOverlayOn) btnOverlayOn.classList.remove("active");
-      btnOverlayOff.classList.add("active");
+}
 
-      if (
-        typeof AndroidBridge !== "undefined" &&
-        AndroidBridge.setCrosshairVisibility
-      ) {
-        AndroidBridge.setCrosshairVisibility(false);
-      }
+if (crosshairOffBtn) {
+
+    crosshairOffBtn.addEventListener("click", () => {
+
+        if (
+            hasAndroidBridge() &&
+            typeof AndroidBridge.stopCrosshair === "function"
+        ) {
+
+            AndroidBridge.stopCrosshair();
+
+            showToast("Đã tắt tâm ảo");
+
+        }
+
     });
-  }
-});
+
+}
+
+loadCrosshair();
 
 startExpireWatcher();
 autoLogin();
 
-out = Path("/mnt/data/headlock_script_clean.js")
-out.write_text(script, encoding="utf-8")
-print(str(out))
