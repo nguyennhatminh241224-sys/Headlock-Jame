@@ -19,9 +19,20 @@ if (MAINTENANCE_MODE) {
 let GET_KEY_FREE_URL = "https://link4m.net/lnZEeK4t";
 let CONTACT_ZALO = "https://zalo.me/0333635135";
 
+const STORAGE = {
+  DEVICE: "headlock_device",
+  KEY: "headlock_key",
+  SESSION: "headlock_session",
+  CROSSHAIR_SIZE: "crosshair_size",
+  CROSSHAIR_COLOR: "crosshair_color",
+  CROSSHAIR_STYLE: "crosshair_style"
+};
+
+
 async function loadRemoteSettings() {
   try {
     const res = await fetch(API_BASE + "/settings");
+    if (!res.ok) throw new Error("Settings API lỗi");
     const data = await res.json();
 
     if (data.success) {
@@ -32,8 +43,6 @@ async function loadRemoteSettings() {
     console.warn("Không tải được settings online", e);
   }
 }
-
-loadRemoteSettings();
 
 const passwordScreen = document.getElementById("passwordScreen");
 const mainApp = document.getElementById("mainApp");
@@ -485,7 +494,17 @@ if (refreshStatsBtn) {
 setInterval(loadStats, 30000);
 
 
-loadCrosshair();
-loadStats();
-startExpireWatcher();
-autoLogin();
+
+function startHeadlockApp() {
+  loadRemoteSettings();
+  loadCrosshair();
+  loadStats();
+  startExpireWatcher();
+  autoLogin();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startHeadlockApp);
+} else {
+  startHeadlockApp();
+}
