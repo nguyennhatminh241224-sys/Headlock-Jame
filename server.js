@@ -26,7 +26,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/check-key", (req, res) => {
-  const { key, deviceId } = req.body;
+  const { key, deviceId, deviceName } = req.body;
 
   if (!key || !deviceId) {
     return res.json({
@@ -45,34 +45,62 @@ app.post("/check-key", (req, res) => {
     });
   }
 
-  if (new Date() > new Date(keyData.expiresAt)) {
+  if (keyData.revoked === true) {
+    return res.json({
+      success: false,
+      message: "Key đã bị thu hồi."
+    });
+  }
+
+  const maxDevices = Number(keyData.maxDevices || keyData.slots || 1);
+
+  if (!Array.isArray(keyData.devices)) {
+    keyData.devices = [];
+  }
+
+  const expiresAt = keyData.expiresAt || null;
+
+  if (expiresAt && new Date() > new Date(expiresAt)) {
     return res.json({
       success: false,
       message: "Key đã hết hạn."
     });
   }
 
-  if (!Array.isArray(keyData.devices)) {
-    keyData.devices = [];
-  }
+  const oldDevice = keyData.devices.find((d) => {
+    if (typeof d === "string") return d === deviceId;
+    return d.id === deviceId;
+  });
 
-  if (!keyData.devices.includes(deviceId)) {
-    if (keyData.devices.length >= keyData.slots) {
+  if (!oldDevice) {
+    if (keyData.devices.length >= maxDevices) {
       return res.json({
         success: false,
-        message: `Key đã đạt giới hạn ${keyData.slots} thiết bị.`
+        message: `Key đã đạt giới hạn ${maxDevices} thiết bị.`
       });
     }
 
-    keyData.devices.push(deviceId);
+    keyData.devices.push({
+      id: deviceId,
+      name: deviceName || "Android Device",
+      firstUsedAt: new Date().toISOString(),
+      lastUsedAt: new Date().toISOString()
+    });
+
+    saveDB(db);
+  } else if (typeof oldDevice === "object") {
+    oldDevice.lastUsedAt = new Date().toISOString();
+    oldDevice.name = deviceName || oldDevice.name || "Android Device";
     saveDB(db);
   }
 
   return res.json({
     success: true,
-    expiresAt: keyData.expiresAt,
+    message: "Kích hoạt thành công",
+    expiresAt: expiresAt,
     slotUsed: keyData.devices.length,
-    slotMax: keyData.slots
+    slotMax: maxDevices,
+    type: keyData.type || "custom"
   });
 });
 
