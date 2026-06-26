@@ -7,21 +7,22 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="bg-orb orb-a"></div>
-  <div class="bg-orb orb-b"></div>
+  <div class="bg-glow bg-gold"></div>
+  <div class="bg-glow bg-blue"></div>
 
   <section class="gate" id="passwordScreen">
     <div class="gate-card">
       <div class="brand-logo">
-        <img src="../../../../../../Downloads/logo.png" alt="Headlock Jame">
+        <img src="logo.png" alt="Headlock Jame">
       </div>
 
-      <div class="badge">Secure Access</div>
+      <div class="secure-text">SECURE ACCESS</div>
       <h1>HEADLOCK <span>JAME</span></h1>
       <p class="byline">BY JAME FF</p>
 
       <form id="passwordForm" class="login-form">
         <label for="passwordInput">Nhập mật khẩu hoặc Key Mua</label>
+
         <div class="input-row">
           <span class="input-icon">🔒</span>
           <input id="passwordInput" type="password" placeholder="Password / Key" autocomplete="off" required />
@@ -29,10 +30,11 @@
         </div>
 
         <div id="passwordError" class="message">Zalo hỗ trợ: 0333635135</div>
+
         <button class="primary-btn" type="submit">⚡ Kích Hoạt Jame</button>
       </form>
 
-      <div class="gate-separator"><span>HOẶC</span></div>
+      <div class="or-line"><span>HOẶC</span></div>
 
       <div class="gate-actions">
         <button id="getKeyBtn" type="button"><span>🔑</span> Nhận Key Miễn Phí</button>
@@ -52,28 +54,71 @@
 
   <main id="mainApp" class="app locked">
     <header class="topbar">
-      <button class="menu-btn" id="menuBtn" type="button">
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="menu">
         <span></span><span></span><span></span>
       </button>
+
       <div class="title-block">
         <h2>HEADLOCK <span>JAME</span></h2>
         <p>BY JAME FF</p>
       </div>
+
       <div class="online-badge"><i></i> Online</div>
     </header>
 
     <section class="hero-card">
       <div class="hero-logo">
-        <img src="../../../../../../Downloads/logo.png" alt="Headlock Jame">
+        <img src="logo.png" alt="Headlock Jame">
       </div>
-      <div>
-        <p class="small">Premium Panel</p>
+
+      <div class="hero-info">
+        <p class="small">PREMIUM PANEL</p>
         <h1>Headlock Jame</h1>
         <p class="license" id="licenseText">Đã mở khóa</p>
       </div>
     </section>
 
-    <div class="simple-menu">
+
+    <section class="stats-card" id="statsCard">
+      <div class="stats-head">
+        <div>
+          <p class="small">LIVE DASHBOARD</p>
+          <h2>Thống kê hệ thống</h2>
+        </div>
+        <button class="refresh-stats" id="refreshStatsBtn" type="button">↻</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-icon green">●</span>
+          <small>Online</small>
+          <b id="statOnline">--</b>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-icon gold">🔑</span>
+          <small>Key Active</small>
+          <b id="statActiveKeys">--</b>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-icon orange">🔥</span>
+          <small>Hôm nay</small>
+          <b id="statToday">--</b>
+        </div>
+
+        <div class="stat-box">
+          <span class="stat-icon blue">☁</span>
+          <small>Railway</small>
+          <b id="statServer">--</b>
+        </div>
+      </div>
+
+      <p class="stats-note" id="statUpdated">Đang đồng bộ...</p>
+    </section>
+
+
+    <section class="simple-menu">
       <button class="menu-row" type="button" data-feature="boost">
         <span class="menu-icon red">🎯</span>
         <span>
@@ -118,7 +163,7 @@
         </span>
         <span class="arrow">›</span>
       </button>
-    </div>
+    </section>
 
     <section class="security-box">
       <span>🛡</span>
@@ -126,6 +171,7 @@
         <b>HỆ THỐNG AN TOÀN</b>
         <small>Cam kết bảo mật - Không thu thập dữ liệu</small>
       </div>
+      <span class="shield-fade">✓</span>
     </section>
 
     <nav class="bottom-nav">
@@ -137,7 +183,7 @@
 
   <aside class="info-panel" id="infoPanel">
     <div class="info-head">
-      <h2>Info</h2>
+      <h2>Thông Tin</h2>
       <button id="closeInfo" type="button">Done</button>
     </div>
 
@@ -188,25 +234,33 @@
   <section class="modal hidden" id="crosshairModal" aria-hidden="true">
     <div class="modal-card crosshair-card">
       <button class="close" type="button" data-close>×</button>
+
       <div class="modal-title">
         <span>⊕</span>
-        <h3>Tâm ảo</h3>
+        <div>
+          <h3>Tâm ảo</h3>
+          <p>Giữ nguyên chỉnh tâm, màu, size và kiểu tâm</p>
+        </div>
       </div>
 
       <h4 class="setting-title">Kiểu tâm</h4>
+
       <div class="crosshair-style-grid">
         <button class="crosshair-style active" data-style="classic" type="button">
           <i class="aim aim-classic"></i>
           <span>Classic</span>
         </button>
+
         <button class="crosshair-style" data-style="cross" type="button">
           <i class="aim aim-cross"></i>
           <span>Cross</span>
         </button>
+
         <button class="crosshair-style" data-style="circle" type="button">
           <i class="aim aim-circle"></i>
-          <span>Circle</span>
+          <span>Dot Circle</span>
         </button>
+
         <button class="crosshair-style" data-style="x" type="button">
           <i class="aim aim-x"></i>
           <span>X Mark</span>
