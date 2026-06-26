@@ -1,18 +1,40 @@
 {
   "keys": {
-    "Jame-FREEKEYS": {
+    "Jame-FREEKEY": {
       "type": "7day",
-      "slots": 200,
-      "expiresAt": "2026-06-27T11:59:59",
-      "devices": [],
-      "revoked": false
+      "expiresAt": "2026-12-31T23:59:59",
+      "maxDevices": 200,
+      "revoked": false,
+      "devices": [
+        {
+          "id": "android_001",
+          "name": "Samsung Galaxy A54",
+          "firstUsedAt": "2026-06-26T08:30:15",
+          "lastUsedAt": "2026-06-26T14:18:42"
+        },
+        {
+          "id": "android_002",
+          "name": "Redmi Note 13",
+          "firstUsedAt": "2026-06-26T09:11:08",
+          "lastUsedAt": "2026-06-26T14:17:55"
+        }
+      ]
     },
-    "JAME-VIP": {
+
+    "VIP-30DAY-001": {
+      "type": "30day",
+      "expiresAt": "2026-07-30T23:59:59",
+      "maxDevices": 1,
+      "revoked": false,
+      "devices": []
+    },
+
+    "VIP-LIFETIME": {
       "type": "lifetime",
-      "slots": 1,
-      "expiresAt": null,
-      "devices": [],
-      "revoked": false
+      "expiresAt": "2099-12-31T23:59:59",
+      "maxDevices": 5,
+      "revoked": false,
+      "devices": []
     }
   }
 }
