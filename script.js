@@ -1,7 +1,5 @@
 // ================= HEADLOCK JAME CONFIG =================
 const API_BASE = "https://headlock-jame-production.up.railway.app";
-const MAINTENANCE_MODE = false;
-
 function showMaintenanceScreen(title, message) {
   document.body.innerHTML = `
     <div style="position:fixed;inset:0;z-index:999999;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
@@ -469,15 +467,12 @@ function updateNativeCrosshair() {
   localStorage.setItem(STORAGE.CROSSHAIR_SIZE, size);
   localStorage.setItem(STORAGE.CROSSHAIR_COLOR, color);
 
+  // Cập nhật size + màu. Hàm Java hiện tại nhận đúng 2 tham số: size, color.
   if (hasAndroidBridge() && typeof AndroidBridge.updateCrosshair === "function") {
-    try {
-      AndroidBridge.updateCrosshair(size, color, currentCrosshairX, currentCrosshairY);
-    } catch (error) {
-      AndroidBridge.updateCrosshair(size, color);
-    }
+    AndroidBridge.updateCrosshair(size, color);
   }
 
-  // Nếu app Android có hàm riêng để chỉnh vị trí, JS sẽ tự gọi.
+  // Cập nhật vị trí X/Y riêng để tâm ảo thật di chuyển trên màn hình.
   if (hasAndroidBridge() && typeof AndroidBridge.updateCrosshairPosition === "function") {
     AndroidBridge.updateCrosshairPosition(currentCrosshairX, currentCrosshairY);
   }
@@ -639,4 +634,11 @@ async function startHeadlockApp() {
   loadStats();
   startExpireWatcher();
   autoLogin();
+}
+
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startHeadlockApp);
+} else {
+  startHeadlockApp();
 }
