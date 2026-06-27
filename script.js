@@ -2,18 +2,17 @@
 const API_BASE = "https://headlock-jame-production.up.railway.app";
 const MAINTENANCE_MODE = false;
 
-if (MAINTENANCE_MODE) {
-  document.addEventListener("DOMContentLoaded", () => {
-    document.body.innerHTML = `
-      <div style="position:fixed;inset:0;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
-        <div>
-          <div style="font-size:54px;font-weight:bold;color:#facc15;margin-bottom:20px;">HEADLOCK</div>
-          <h2 style="margin:0 0 15px">APP ĐANG NÂNG CẤP</h2>
-          <p style="opacity:.8">Phiên bản mới đang được cập nhật.<br>Vui lòng quay lại sau.</p>
-        </div>
-      </div>`;
-  });
-  throw new Error("Maintenance");
+function showMaintenanceScreen(title, message) {
+  document.body.innerHTML = `
+    <div style="position:fixed;inset:0;z-index:999999;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
+      <div>
+        <div style="font-size:54px;font-weight:bold;color:#facc15;margin-bottom:20px;">HEADLOCK</div>
+        <h2 style="margin:0 0 15px">${title || "APP ĐANG NÂNG CẤP"}</h2>
+        <p style="opacity:.8;line-height:1.6">
+          ${message || "Phiên bản mới đang được cập nhật.<br>Vui lòng quay lại sau."}
+        </p>
+      </div>
+    </div>`;
 }
 
 let GET_KEY_FREE_URL = "https://link4m.net/lnZEeK4t";
@@ -25,7 +24,9 @@ const STORAGE = {
   SESSION: "headlock_session",
   CROSSHAIR_SIZE: "crosshair_size",
   CROSSHAIR_COLOR: "crosshair_color",
-  CROSSHAIR_STYLE: "crosshair_style"
+  CROSSHAIR_STYLE: "crosshair_style",
+  CROSSHAIR_X: "crosshair_x",
+  CROSSHAIR_Y: "crosshair_y"
 };
 
 
@@ -33,14 +34,27 @@ async function loadRemoteSettings() {
   try {
     const res = await fetch(API_BASE + "/settings");
     if (!res.ok) throw new Error("Settings API lỗi");
+
     const data = await res.json();
 
     if (data.success) {
       GET_KEY_FREE_URL = data.freeKeyUrl || GET_KEY_FREE_URL;
       CONTACT_ZALO = data.contactUrl || CONTACT_ZALO;
+
+      if (data.maintenanceMode === true) {
+        showMaintenanceScreen(
+          data.maintenanceTitle || "APP ĐANG NÂNG CẤP",
+          data.maintenanceMessage || "Phiên bản mới đang được cập nhật.<br>Vui lòng quay lại sau."
+        );
+
+        return false;
+      }
     }
+
+    return true;
   } catch (e) {
     console.warn("Không tải được settings online", e);
+    return true;
   }
 }
 
@@ -63,6 +77,16 @@ const crosshairSize = document.getElementById("crosshairSize");
 const crosshairColor = document.getElementById("crosshairColor");
 const crosshairOnBtn = document.getElementById("crosshairOnBtn");
 const crosshairOffBtn = document.getElementById("crosshairOffBtn");
+
+// Nút / thanh chỉnh vị trí tâm ảo
+const crosshairMoveUp = document.getElementById("crosshairMoveUp");
+const crosshairMoveDown = document.getElementById("crosshairMoveDown");
+const crosshairMoveLeft = document.getElementById("crosshairMoveLeft");
+const crosshairMoveRight = document.getElementById("crosshairMoveRight");
+const crosshairResetPos = document.getElementById("crosshairResetPos");
+const crosshairPosX = document.getElementById("crosshairPosX");
+const crosshairPosY = document.getElementById("crosshairPosY");
+const crosshairPosText = document.getElementById("crosshairPosText");
 
 const terminal = document.getElementById("terminal");
 const boostDone = document.getElementById("boostDone");
@@ -343,6 +367,9 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
 // ================= REAL ANDROID CROSSHAIR =================
 
 let currentCrosshairStyle = localStorage.getItem(STORAGE.CROSSHAIR_STYLE) || "classic";
+let currentCrosshairX = parseInt(localStorage.getItem(STORAGE.CROSSHAIR_X) || "0", 10);
+let currentCrosshairY = parseInt(localStorage.getItem(STORAGE.CROSSHAIR_Y) || "0", 10);
+const CROSSHAIR_MOVE_STEP = 5;
 
 function setPreviewStyle(styleName) {
   currentCrosshairStyle = styleName || "classic";
@@ -354,6 +381,53 @@ function setPreviewStyle(styleName) {
 
   if (crosshairDot) {
     crosshairDot.className = "crosshair-dot " + currentCrosshairStyle;
+  }
+}
+
+function safeNumber(value, fallback = 0) {
+  const number = parseInt(value, 10);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function getInputMin(input, fallback) {
+  if (!input || input.min === "") return fallback;
+  return safeNumber(input.min, fallback);
+}
+
+function getInputMax(input, fallback) {
+  if (!input || input.max === "") return fallback;
+  return safeNumber(input.max, fallback);
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function updateCrosshairPositionText() {
+  if (crosshairPosText) {
+    crosshairPosText.textContent = `X: ${currentCrosshairX} | Y: ${currentCrosshairY}`;
+  }
+}
+
+function setCrosshairPosition(x, y, shouldUpdateNative = true) {
+  const minX = getInputMin(crosshairPosX, -300);
+  const maxX = getInputMax(crosshairPosX, 300);
+  const minY = getInputMin(crosshairPosY, -300);
+  const maxY = getInputMax(crosshairPosY, 300);
+
+  currentCrosshairX = clamp(safeNumber(x, 0), minX, maxX);
+  currentCrosshairY = clamp(safeNumber(y, 0), minY, maxY);
+
+  localStorage.setItem(STORAGE.CROSSHAIR_X, currentCrosshairX);
+  localStorage.setItem(STORAGE.CROSSHAIR_Y, currentCrosshairY);
+
+  if (crosshairPosX) crosshairPosX.value = currentCrosshairX;
+  if (crosshairPosY) crosshairPosY.value = currentCrosshairY;
+
+  updateCrosshairPositionText();
+
+  if (shouldUpdateNative) {
+    updateNativeCrosshair();
   }
 }
 
@@ -396,7 +470,16 @@ function updateNativeCrosshair() {
   localStorage.setItem(STORAGE.CROSSHAIR_COLOR, color);
 
   if (hasAndroidBridge() && typeof AndroidBridge.updateCrosshair === "function") {
-    AndroidBridge.updateCrosshair(size, color);
+    try {
+      AndroidBridge.updateCrosshair(size, color, currentCrosshairX, currentCrosshairY);
+    } catch (error) {
+      AndroidBridge.updateCrosshair(size, color);
+    }
+  }
+
+  // Nếu app Android có hàm riêng để chỉnh vị trí, JS sẽ tự gọi.
+  if (hasAndroidBridge() && typeof AndroidBridge.updateCrosshairPosition === "function") {
+    AndroidBridge.updateCrosshairPosition(currentCrosshairX, currentCrosshairY);
   }
 
   if (hasAndroidBridge() && typeof AndroidBridge.setCrosshairStyle === "function") {
@@ -408,9 +491,18 @@ function loadCrosshair() {
   const size = localStorage.getItem(STORAGE.CROSSHAIR_SIZE);
   const color = localStorage.getItem(STORAGE.CROSSHAIR_COLOR);
   const style = localStorage.getItem(STORAGE.CROSSHAIR_STYLE) || "classic";
+  const posX = localStorage.getItem(STORAGE.CROSSHAIR_X);
+  const posY = localStorage.getItem(STORAGE.CROSSHAIR_Y);
 
   if (size && crosshairSize) crosshairSize.value = size;
   if (color && crosshairColor) crosshairColor.value = color;
+
+  currentCrosshairX = safeNumber(posX, 0);
+  currentCrosshairY = safeNumber(posY, 0);
+  if (crosshairPosX) crosshairPosX.value = currentCrosshairX;
+  if (crosshairPosY) crosshairPosY.value = currentCrosshairY;
+  updateCrosshairPositionText();
+
   setPreviewStyle(style);
   updateNativeCrosshair();
 }
@@ -424,6 +516,49 @@ document.querySelectorAll(".crosshair-style").forEach((btn) => {
 
 if (crosshairSize) crosshairSize.addEventListener("input", updateNativeCrosshair);
 if (crosshairColor) crosshairColor.addEventListener("input", updateNativeCrosshair);
+
+if (crosshairPosX) {
+  crosshairPosX.addEventListener("input", () => {
+    setCrosshairPosition(crosshairPosX.value, currentCrosshairY);
+  });
+}
+
+if (crosshairPosY) {
+  crosshairPosY.addEventListener("input", () => {
+    setCrosshairPosition(currentCrosshairX, crosshairPosY.value);
+  });
+}
+
+if (crosshairMoveUp) {
+  crosshairMoveUp.addEventListener("click", () => {
+    setCrosshairPosition(currentCrosshairX, currentCrosshairY - CROSSHAIR_MOVE_STEP);
+  });
+}
+
+if (crosshairMoveDown) {
+  crosshairMoveDown.addEventListener("click", () => {
+    setCrosshairPosition(currentCrosshairX, currentCrosshairY + CROSSHAIR_MOVE_STEP);
+  });
+}
+
+if (crosshairMoveLeft) {
+  crosshairMoveLeft.addEventListener("click", () => {
+    setCrosshairPosition(currentCrosshairX - CROSSHAIR_MOVE_STEP, currentCrosshairY);
+  });
+}
+
+if (crosshairMoveRight) {
+  crosshairMoveRight.addEventListener("click", () => {
+    setCrosshairPosition(currentCrosshairX + CROSSHAIR_MOVE_STEP, currentCrosshairY);
+  });
+}
+
+if (crosshairResetPos) {
+  crosshairResetPos.addEventListener("click", () => {
+    setCrosshairPosition(0, 0);
+    showToast("Đã đưa tâm ảo về giữa màn hình");
+  });
+}
 
 if (crosshairOnBtn) {
   crosshairOnBtn.addEventListener("click", () => {
@@ -495,16 +630,13 @@ setInterval(loadStats, 30000);
 
 
 
-function startHeadlockApp() {
-  loadRemoteSettings();
+async function startHeadlockApp() {
+  const canStart = await loadRemoteSettings();
+
+  if (!canStart) return;
+
   loadCrosshair();
   loadStats();
   startExpireWatcher();
   autoLogin();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", startHeadlockApp);
-} else {
-  startHeadlockApp();
 }
