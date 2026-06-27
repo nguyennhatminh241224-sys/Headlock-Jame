@@ -13,10 +13,10 @@
       "devices": []
     },
 
-    "VIP-30DAY-001": {
-      "type": "30day",
-      "expiresAt": "2026-07-30T23:59:59",
-      "maxDevices": 1,
+    "VIP-7DAY-001": {
+      "type": "7day",
+      "expiresAt": "2026-07-09T23:59:59",
+      "maxDevices": 2,
       "revoked": false,
       "devices": []
     },
