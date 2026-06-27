@@ -25,6 +25,13 @@
       "maxDevices": 8,
       "revoked": false,
       "devices": []
+        },
+    "VIP-7DAY": {
+      "type": "7day",
+      "expiresAt": "2026-07-03T23:59:59",
+      "maxDevices": 2,
+      "revoked": false,
+      "devices": []
     },
 
     "VIP-30DAY": {
