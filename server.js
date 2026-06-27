@@ -18,8 +18,8 @@ const DEFAULT_SETTINGS = {
   maintenanceMessage: "Phiên bản mới đang được cập nhật.<br>Vui lòng quay lại sau.",
 
   appLatestVersionCode: 2,
-  appMinVersionCode: 2,
-  forceUpdate: true,
+  appMinVersionCode: 1,
+  forceUpdate: false,
   updateUrl: "https://boostylink.com/8f947rKf",
   updateTitle: "CẦN CẬP NHẬT APP",
   updateMessage: "Phiên bản bạn đang dùng đã cũ. Vui lòng tải bản mới để tiếp tục sử dụng."
