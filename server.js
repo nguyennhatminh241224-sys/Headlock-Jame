@@ -12,9 +12,9 @@ app.use(express.json());
 const DEFAULT_SETTINGS = {
   freeKeyUrl: "https://link4m.net/lnZEeK4t",
   contactUrl: "https://zalo.me/0333635135",
-  maintenanceMode: true,
+  maintenanceMode: false,
   maintenanceTitle: "APP ĐANG NÂNG CẤP",
-  maintenanceMessage: "Lên Tiểu Sử TIKTOK JAME.11 Để Tải Bản Mới Nhất.<br>Vui lòng quay lại sau."
+  maintenanceMessage: "Lên Tiểu Sử TIKTOK JAME.11 Để Tải Bản Mới Nhất.<br>"
 };
 
 function readDB() {
