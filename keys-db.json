@@ -12,7 +12,13 @@
       "revoked": false,
       "devices": []
     },
-
+    "Jame1": {
+      "type": "1day",
+      "expiresAt": "2026-06-27T01:59:59",
+      "maxDevices": 200,
+      "revoked": false,
+      "devices": []
+    },
     "VIP-7DAY-001": {
       "type": "13day",
       "expiresAt": "2026-07-09T23:59:59",
