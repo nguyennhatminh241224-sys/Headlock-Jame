@@ -21,10 +21,10 @@
       "devices": []
     },
 
-    "VIP-LIFETIME": {
-      "type": "lifetime",
-      "expiresAt": "2099-12-31T23:59:59",
-      "maxDevices": 5,
+    "VIP-30DAY": {
+      "type": "30",
+      "expiresAt": "2026-07-27T23:59:59",
+      "maxDevices": 1,
       "revoked": false,
       "devices": []
     }
