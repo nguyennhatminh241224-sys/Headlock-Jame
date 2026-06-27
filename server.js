@@ -19,8 +19,8 @@ const DEFAULT_SETTINGS = {
 
   appLatestVersionCode: 1,
   appMinVersionCode: 1,
-  forceUpdate: false,
-  updateUrl: "https://example.com/headlock-latest.apk",
+  forceUpdate: true,
+  updateUrl: "https://boostylink.com/8f947rKf",
   updateTitle: "CẦN CẬP NHẬT APP",
   updateMessage: "Phiên bản bạn đang dùng đã cũ. Vui lòng tải bản mới để tiếp tục sử dụng."
 };
