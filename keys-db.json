@@ -8,7 +8,7 @@
     "Jame-KEY200": {
       "type": "1day",
       "expiresAt": "2026-06-28T01:59:59",
-      "maxDevices": 200,
+      "maxDevices": 250,
       "revoked": false,
       "devices": []
     },
