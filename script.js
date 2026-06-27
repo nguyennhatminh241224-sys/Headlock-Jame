@@ -13,6 +13,64 @@ function showMaintenanceScreen(title, message) {
     </div>`;
 }
 
+
+function showForceUpdateScreen(title, message, updateUrl) {
+  document.body.innerHTML = `
+    <div style="position:fixed;inset:0;z-index:999999;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
+      <div style="max-width:360px;width:100%;">
+        <div style="font-size:48px;font-weight:bold;color:#facc15;margin-bottom:18px;">HEADLOCK</div>
+        <h2 style="margin:0 0 14px;font-size:24px;">${title || "CẦN CẬP NHẬT APP"}</h2>
+        <p style="opacity:.86;line-height:1.6;margin-bottom:22px;">
+          ${message || "Phiên bản bạn đang dùng đã cũ. Vui lòng tải bản mới để tiếp tục sử dụng."}
+        </p>
+        <button id="forceUpdateBtn" type="button" style="width:100%;border:0;border-radius:18px;background:linear-gradient(135deg,#22c55e,#16a34a);color:white;font-weight:800;font-size:17px;padding:16px 18px;">
+          TẢI BẢN MỚI
+        </button>
+        <p style="font-size:13px;opacity:.65;margin-top:14px;">Bạn cần cập nhật để tiếp tục dùng app.</p>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const btn = document.getElementById("forceUpdateBtn");
+    if (!btn) return;
+
+    btn.addEventListener("click", () => {
+      if (hasAndroidBridge() && typeof AndroidBridge.openExternalUrl === "function") {
+        AndroidBridge.openExternalUrl(updateUrl);
+      } else {
+        window.location.href = updateUrl;
+      }
+    });
+  }, 0);
+}
+
+function getCurrentAppVersionCode() {
+  try {
+    if (hasAndroidBridge() && typeof AndroidBridge.getVersionCode === "function") {
+      return parseInt(AndroidBridge.getVersionCode(), 10) || 1;
+    }
+  } catch (error) {
+    console.warn("Không lấy được versionCode", error);
+  }
+
+  return 1;
+}
+
+function shouldForceUpdate(data) {
+  const currentVersion = getCurrentAppVersionCode();
+  const latestVersion = parseInt(data.appLatestVersionCode || data.latestVersionCode || "1", 10) || 1;
+  const minVersion = parseInt(data.appMinVersionCode || data.minVersionCode || "1", 10) || 1;
+  const forceUpdate = data.forceUpdate === true;
+  const updateUrl = data.updateUrl || data.apkUrl || "";
+
+  if (!updateUrl) return false;
+
+  if (currentVersion < minVersion) return true;
+  if (forceUpdate && currentVersion < latestVersion) return true;
+
+  return false;
+}
+
 let GET_KEY_FREE_URL = "https://link4m.net/lnZEeK4t";
 let CONTACT_ZALO = "https://zalo.me/0333635135";
 
@@ -38,6 +96,16 @@ async function loadRemoteSettings() {
     if (data.success) {
       GET_KEY_FREE_URL = data.freeKeyUrl || GET_KEY_FREE_URL;
       CONTACT_ZALO = data.contactUrl || CONTACT_ZALO;
+
+      if (shouldForceUpdate(data)) {
+        showForceUpdateScreen(
+          data.updateTitle || "CẦN CẬP NHẬT APP",
+          data.updateMessage || "Phiên bản bạn đang dùng đã cũ. Vui lòng tải bản mới để tiếp tục sử dụng.",
+          data.updateUrl || data.apkUrl
+        );
+
+        return false;
+      }
 
       if (data.maintenanceMode === true) {
         showMaintenanceScreen(
