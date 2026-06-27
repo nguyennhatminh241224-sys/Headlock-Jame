@@ -16,7 +16,7 @@
       "type": "1day",
       "expiresAt": "2026-06-28T01:59:59",
       "maxDevices": 200,
-      "revoked": false,
+      "revoked": true,
       "devices": []
     },
     "VIP-7DAY-001": {
