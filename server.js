@@ -12,9 +12,17 @@ app.use(express.json());
 const DEFAULT_SETTINGS = {
   freeKeyUrl: "https://link4m.net/lnZEeK4t",
   contactUrl: "https://zalo.me/0333635135",
+
   maintenanceMode: false,
   maintenanceTitle: "APP ĐANG NÂNG CẤP",
-  maintenanceMessage: "Lên Tiểu Sử TIKTOK JAME.11 Để Tải Bản Mới Nhất.<br>"
+  maintenanceMessage: "Phiên bản mới đang được cập nhật.<br>Vui lòng quay lại sau.",
+
+  appLatestVersionCode: 1,
+  appMinVersionCode: 1,
+  forceUpdate: false,
+  updateUrl: "https://example.com/headlock-latest.apk",
+  updateTitle: "CẦN CẬP NHẬT APP",
+  updateMessage: "Phiên bản bạn đang dùng đã cũ. Vui lòng tải bản mới để tiếp tục sử dụng."
 };
 
 function readDB() {
@@ -121,6 +129,17 @@ function getEnvBoolean(name, fallback) {
   return String(value).toLowerCase() === "true";
 }
 
+function getEnvNumber(name, fallback) {
+  const value = process.env[name];
+
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return fallback;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
 app.get("/", (req, res) => {
   res.send("HEADLOCK KEY SERVER IS RUNNING");
 });
@@ -155,6 +174,36 @@ app.get("/settings", (req, res) => {
     maintenanceMessage: getEnvText(
       "MAINTENANCE_MESSAGE",
       settings.maintenanceMessage || DEFAULT_SETTINGS.maintenanceMessage
+    ),
+
+    appLatestVersionCode: getEnvNumber(
+      "APP_LATEST_VERSION_CODE",
+      Number(settings.appLatestVersionCode || DEFAULT_SETTINGS.appLatestVersionCode)
+    ),
+
+    appMinVersionCode: getEnvNumber(
+      "APP_MIN_VERSION_CODE",
+      Number(settings.appMinVersionCode || DEFAULT_SETTINGS.appMinVersionCode)
+    ),
+
+    forceUpdate: getEnvBoolean(
+      "FORCE_UPDATE",
+      settings.forceUpdate === true
+    ),
+
+    updateUrl: getEnvText(
+      "APK_UPDATE_URL",
+      settings.updateUrl || DEFAULT_SETTINGS.updateUrl
+    ),
+
+    updateTitle: getEnvText(
+      "UPDATE_TITLE",
+      settings.updateTitle || DEFAULT_SETTINGS.updateTitle
+    ),
+
+    updateMessage: getEnvText(
+      "UPDATE_MESSAGE",
+      settings.updateMessage || DEFAULT_SETTINGS.updateMessage
     )
   });
 });
