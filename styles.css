@@ -169,3 +169,26 @@ input[type=range]{width:100%;accent-color:#facc15}input[type=color]{width:100%;h
   .stat-box{min-height:84px}
   .stat-box b{font-size:21px}
 }
+/* ===== NÚT CHỈNH VỊ TRÍ TÂM ẢO - DỄ NHÌN HƠN ===== */
+
+.crosshair-position-control .modal-btn {
+  background: linear-gradient(135deg, #facc15, #f97316) !important;
+  color: #111827 !important;
+  border: 1px solid rgba(250, 204, 21, 0.9) !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.35) !important;
+}
+
+.crosshair-position-control .modal-btn:active {
+  transform: scale(0.96);
+  filter: brightness(0.9);
+}
+
+/* Giữ nút RESET màu xanh */
+.crosshair-position-control #crosshairResetPos {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+  color: white !important;
+  border: 1px solid rgba(34, 197, 94, 0.9) !important;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35) !important;
+}
