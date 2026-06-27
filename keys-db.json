@@ -14,7 +14,7 @@
     },
 
     "VIP-7DAY-001": {
-      "type": "7day",
+      "type": "13day",
       "expiresAt": "2026-07-09T23:59:59",
       "maxDevices": 2,
       "revoked": false,
