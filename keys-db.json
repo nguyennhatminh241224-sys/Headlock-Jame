@@ -5,10 +5,10 @@
   },
 
   "keys": {
-    "Jame-KEY201": {
+    "Jame-KEY206": {
       "type": "1day",
-      "expiresAt": "2026-06-28T01:59:59",
-      "maxDevices": 50,
+      "expiresAt": "2026-06-29T01:59:59",
+      "maxDevices": 150,
       "revoked": false,
       "devices": []
     },
