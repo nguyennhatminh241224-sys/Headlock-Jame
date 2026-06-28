@@ -57,6 +57,10 @@ function getCurrentAppVersionCode() {
 }
 
 function shouldForceUpdate(data) {
+  // Chỉ Android APK/WebView mới bắt buộc cập nhật.
+  // Web, iOS Safari/PWA không cần hiện màn hình cập nhật APK.
+  if (!hasAndroidBridge()) return false;
+
   const currentVersion = getCurrentAppVersionCode();
   const latestVersion = parseInt(data.appLatestVersionCode || data.latestVersionCode || "1", 10) || 1;
   const minVersion = parseInt(data.appMinVersionCode || data.minVersionCode || "1", 10) || 1;
