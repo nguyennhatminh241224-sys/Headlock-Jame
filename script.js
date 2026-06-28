@@ -241,7 +241,9 @@ function unlockApp(message = "Đã mở khóa") {
   showToast(message);
 }
 
-function lockApp() {
+function lockApp(options = {}) {
+  const clearSavedKey = options.clearSavedKey === true;
+
   document.body.classList.remove("unlocked");
   if (passwordScreen) passwordScreen.classList.remove("hidden");
   if (mainApp) mainApp.classList.add("locked");
@@ -249,7 +251,12 @@ function lockApp() {
   if (passwordInput) passwordInput.value = "";
 
   sessionStorage.removeItem(STORAGE.SESSION);
-  localStorage.removeItem(STORAGE.KEY);
+
+  // Không xóa key đã lưu khi app tự khóa do reload/mất mạng.
+  // Chỉ xóa khi người dùng bấm Đăng xuất hoặc key thật sự không còn hợp lệ.
+  if (clearSavedKey) {
+    localStorage.removeItem(STORAGE.KEY);
+  }
 
   setLoginMessage("", "Zalo hỗ trợ: 0333635135");
 }
@@ -270,12 +277,13 @@ async function loginWithValue(value) {
 
 async function autoLogin() {
   const savedKey = localStorage.getItem(STORAGE.KEY);
-  if (!savedKey || sessionStorage.getItem(STORAGE.SESSION) !== "true") return;
+  if (!savedKey) return;
 
   try {
     await loginWithValue(savedKey);
-  } catch {
-    lockApp();
+  } catch (error) {
+    sessionStorage.removeItem(STORAGE.SESSION);
+    setLoginMessage("err", error.message || "Key đã lưu không còn hợp lệ.");
   }
 }
 
@@ -287,11 +295,12 @@ function startExpireWatcher() {
     try {
       const result = await checkKeyOnline(savedKey);
       if (!result.success) {
-        lockApp();
+        lockApp({ clearSavedKey: true });
         setLoginMessage("err", result.message || "Key không còn hợp lệ.");
       }
     } catch {
-      lockApp();
+      // Mất mạng/server lỗi tạm thời: khóa màn hình nhưng vẫn giữ key để lần sau tự đăng nhập lại.
+      lockApp({ clearSavedKey: false });
       setLoginMessage("err", "Không kết nối được server kiểm tra key.");
     }
   }, 60000);
@@ -329,7 +338,11 @@ if (togglePassword && passwordInput) {
   });
 }
 
-if (logoutBtn) logoutBtn.addEventListener("click", lockApp);
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    lockApp({ clearSavedKey: true });
+  });
+}
 if (contactBtn) contactBtn.addEventListener("click", () => window.open(CONTACT_ZALO, "_blank"));
 if (getKeyBtn) getKeyBtn.addEventListener("click", () => window.open(GET_KEY_FREE_URL, "_blank"));
 if (infoGetKeyBtn) infoGetKeyBtn.addEventListener("click", () => window.open(GET_KEY_FREE_URL, "_blank"));
