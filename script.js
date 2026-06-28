@@ -57,21 +57,9 @@ function getCurrentAppVersionCode() {
 }
 
 function shouldForceUpdate(data) {
-  // Chỉ Android app thật mới bị bắt cập nhật APK
-  const isAndroidApp =
-    typeof AndroidBridge !== "undefined" &&
-    typeof AndroidBridge.getVersionCode === "function";
-
-  // iOS Web Clip / WebView / trình duyệt: không bắt update APK
-  if (!isAndroidApp) {
-    return false;
-  }
-
   const currentVersion = getCurrentAppVersionCode();
-  const latestVersion =
-    parseInt(data.appLatestVersionCode || data.latestVersionCode || "1", 10) || 1;
-  const minVersion =
-    parseInt(data.appMinVersionCode || data.minVersionCode || "1", 10) || 1;
+  const latestVersion = parseInt(data.appLatestVersionCode || data.latestVersionCode || "1", 10) || 1;
+  const minVersion = parseInt(data.appMinVersionCode || data.minVersionCode || "1", 10) || 1;
   const forceUpdate = data.forceUpdate === true;
   const updateUrl = data.updateUrl || data.apkUrl || "";
 
@@ -497,6 +485,12 @@ function clamp(value, min, max) {
 function updateCrosshairPositionText() {
   if (crosshairPosText) {
     crosshairPosText.textContent = `X: ${currentCrosshairX} | Y: ${currentCrosshairY}`;
+  }
+
+  // Hiển thị vị trí trong khung preview ở tỉ lệ nhỏ để dễ nhìn, không ảnh hưởng vị trí thật trên Android.
+  if (crosshairDot) {
+    crosshairDot.style.setProperty("--crosshair-x", Math.round(currentCrosshairX / 3) + "px");
+    crosshairDot.style.setProperty("--crosshair-y", Math.round(currentCrosshairY / 3) + "px");
   }
 }
 
