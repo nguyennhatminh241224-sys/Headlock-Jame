@@ -57,9 +57,21 @@ function getCurrentAppVersionCode() {
 }
 
 function shouldForceUpdate(data) {
+  // Chỉ Android app thật mới bị bắt cập nhật APK
+  const isAndroidApp =
+    typeof AndroidBridge !== "undefined" &&
+    typeof AndroidBridge.getVersionCode === "function";
+
+  // iOS Web Clip / WebView / trình duyệt: không bắt update APK
+  if (!isAndroidApp) {
+    return false;
+  }
+
   const currentVersion = getCurrentAppVersionCode();
-  const latestVersion = parseInt(data.appLatestVersionCode || data.latestVersionCode || "1", 10) || 1;
-  const minVersion = parseInt(data.appMinVersionCode || data.minVersionCode || "1", 10) || 1;
+  const latestVersion =
+    parseInt(data.appLatestVersionCode || data.latestVersionCode || "1", 10) || 1;
+  const minVersion =
+    parseInt(data.appMinVersionCode || data.minVersionCode || "1", 10) || 1;
   const forceUpdate = data.forceUpdate === true;
   const updateUrl = data.updateUrl || data.apkUrl || "";
 
