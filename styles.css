@@ -217,3 +217,20 @@ input[type=range]{width:100%;accent-color:#facc15}input[type=color]{width:100%;h
 .crosshair-preview .crosshair-dot{position:absolute;left:50%;top:50%;transform:translate(calc(-50% + var(--crosshair-x,0px)),calc(-50% + var(--crosshair-y,0px)))}
 .crosshair-preview .crosshair-dot.x{transform:translate(calc(-50% + var(--crosshair-x,0px)),calc(-50% + var(--crosshair-y,0px))) rotate(45deg)}
 @media(max-width:390px){.move-row{gap:6px}.move-row button{height:40px;font-size:21px}.crosshair-position-control{padding:12px}}
+
+
+/* ===== ĐĂNG XUẤT APP ===== */
+.logout-btn{
+  margin-top:14px;
+  background:linear-gradient(135deg,#ef4444,#991b1b)!important;
+  color:#fff!important;
+  font-weight:950!important;
+  text-align:center!important;
+  justify-content:center!important;
+}
+.logout-card .modal-title{margin-bottom:18px}
+.logout-card .modal-title p{font-size:14px;color:#cbd5e1}
+.cancel-btn{
+  background:#2b2b2b!important;
+  color:#fff!important;
+}
