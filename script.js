@@ -134,6 +134,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const contactBtn = document.getElementById("contactBtn");
 const getKeyBtn = document.getElementById("getKeyBtn");
 const infoGetKeyBtn = document.getElementById("infoGetKeyBtn");
+const appLogoutBtn = document.getElementById("appLogoutBtn");
 const licenseText = document.getElementById("licenseText");
 
 const boostModal = document.getElementById("boostModal");
@@ -143,6 +144,10 @@ const crosshairSize = document.getElementById("crosshairSize");
 const crosshairColor = document.getElementById("crosshairColor");
 const crosshairOnBtn = document.getElementById("crosshairOnBtn");
 const crosshairOffBtn = document.getElementById("crosshairOffBtn");
+const logoutModal = document.getElementById("logoutModal");
+const logoutConfirm = document.getElementById("logoutConfirm");
+const logoutCancel = document.getElementById("logoutCancel");
+const logoutClose = document.getElementById("logoutClose");
 
 // Nút / thanh chỉnh vị trí tâm ảo
 const crosshairMoveUp = document.getElementById("crosshairMoveUp");
@@ -343,15 +348,48 @@ if (logoutBtn) {
     lockApp({ clearSavedKey: true });
   });
 }
+
+
+// ===== Đăng xuất App: popup riêng, không dùng confirm() nên không hiện file:// =====
+if (appLogoutBtn) {
+  appLogoutBtn.addEventListener("click", () => {
+    openModal(logoutModal);
+  });
+}
+
+if (logoutCancel) {
+  logoutCancel.addEventListener("click", () => closeModal(logoutModal));
+}
+
+if (logoutClose) {
+  logoutClose.addEventListener("click", () => closeModal(logoutModal));
+}
+
+if (logoutConfirm) {
+  logoutConfirm.addEventListener("click", () => {
+    localStorage.removeItem(STORAGE.KEY);
+    sessionStorage.removeItem(STORAGE.SESSION);
+
+    closeModal(logoutModal);
+    if (infoPanel) infoPanel.classList.remove("active");
+    showToast("Đã đăng xuất");
+
+    setTimeout(() => {
+      location.reload();
+    }, 500);
+  });
+}
+
 if (contactBtn) contactBtn.addEventListener("click", () => window.open(CONTACT_ZALO, "_blank"));
 if (getKeyBtn) getKeyBtn.addEventListener("click", () => window.open(GET_KEY_FREE_URL, "_blank"));
 if (infoGetKeyBtn) infoGetKeyBtn.addEventListener("click", () => window.open(GET_KEY_FREE_URL, "_blank"));
 
 function closeAll() {
   if (infoPanel) infoPanel.classList.remove("active");
-  if (overlay) overlay.classList.add("hidden");
   closeModal(boostModal);
   closeModal(crosshairModal);
+  closeModal(logoutModal);
+  if (overlay) overlay.classList.add("hidden");
 }
 
 if (menuBtn) {
@@ -378,6 +416,7 @@ function closeModal(modal) {
   const hasOpen =
     (boostModal && !boostModal.classList.contains("hidden")) ||
     (crosshairModal && !crosshairModal.classList.contains("hidden")) ||
+    (logoutModal && !logoutModal.classList.contains("hidden")) ||
     (infoPanel && infoPanel.classList.contains("active"));
 
   if (!hasOpen && overlay) overlay.classList.add("hidden");
@@ -387,6 +426,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
   btn.addEventListener("click", () => {
     closeModal(boostModal);
     closeModal(crosshairModal);
+    closeModal(logoutModal);
   });
 });
 
