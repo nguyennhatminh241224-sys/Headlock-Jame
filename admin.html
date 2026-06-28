@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Headlock Admin</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="bg"></div>
+
+  <main class="wrap">
+    <section id="loginBox" class="card login-card">
+      <h1>HEADLOCK ADMIN</h1>
+      <p>Đăng nhập để quản lý key, thiết bị và cấu hình app.</p>
+      <input id="adminPassword" type="password" placeholder="Nhập mật khẩu admin" />
+      <button id="loginBtn">Đăng nhập</button>
+      <div id="loginMsg" class="msg"></div>
+    </section>
+
+    <section id="adminPanel" class="hidden">
+      <header class="topbar">
+        <div>
+          <h1>HEADLOCK ADMIN</h1>
+          <p>Key Server Dashboard</p>
+        </div>
+        <button id="logoutBtn" class="ghost">Đăng xuất</button>
+      </header>
+
+      <section class="stats grid4">
+        <div class="stat"><span>Online</span><b id="statOnline">--</b></div>
+        <div class="stat"><span>Active Keys</span><b id="statActiveKeys">--</b></div>
+        <div class="stat"><span>Today</span><b id="statToday">--</b></div>
+        <div class="stat"><span>Total Devices</span><b id="statTotalDevices">--</b></div>
+      </section>
+
+      <section class="card">
+        <h2>Thêm / cập nhật key</h2>
+        <div class="form-grid">
+          <input id="keyInput" placeholder="Key, ví dụ: VIP-7DAY" />
+          <input id="typeInput" placeholder="Loại, ví dụ: 7day / LIFETIME" />
+          <input id="expiresInput" type="datetime-local" />
+          <input id="maxDevicesInput" type="number" min="1" placeholder="Số thiết bị" />
+          <label class="check"><input id="revokedInput" type="checkbox" /> Khóa key</label>
+          <button id="saveKeyBtn">Lưu key</button>
+        </div>
+        <div id="keyMsg" class="msg"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Danh sách key</h2>
+          <button id="refreshKeysBtn" class="ghost">Tải lại</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Type</th>
+                <th>Hết hạn</th>
+                <th>Slot</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="keysBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Thiết bị của key</h2>
+        <div id="deviceTitle" class="sub">Chọn “Thiết bị” ở một key để xem.</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Device ID</th>
+                <th>Tên máy</th>
+                <th>Lần đầu</th>
+                <th>Lần cuối</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="devicesBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Settings</h2>
+        <div class="form-grid settings-grid">
+          <input id="freeKeyUrl" placeholder="Free Key URL" />
+          <input id="contactUrl" placeholder="Zalo URL" />
+          <input id="updateUrl" placeholder="APK Update URL" />
+          <input id="updateTitle" placeholder="Tiêu đề cập nhật" />
+          <input id="updateMessage" placeholder="Nội dung cập nhật" />
+          <input id="maintenanceTitle" placeholder="Tiêu đề bảo trì" />
+          <input id="maintenanceMessage" placeholder="Nội dung bảo trì" />
+          <input id="appLatestVersionCode" type="number" placeholder="Latest Version Code" />
+          <input id="appMinVersionCode" type="number" placeholder="Min Version Code" />
+          <label class="check"><input id="forceUpdate" type="checkbox" /> Bắt buộc cập nhật</label>
+          <label class="check"><input id="maintenanceMode" type="checkbox" /> Bảo trì</label>
+          <button id="saveSettingsBtn">Lưu settings</button>
+        </div>
+        <div id="settingsMsg" class="msg"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
