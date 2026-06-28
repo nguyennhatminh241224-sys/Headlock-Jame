@@ -6,7 +6,7 @@ const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Jame123";
 const SEED_FILE = path.join(__dirname, "keys-db.json");
 
 app.use(cors());
