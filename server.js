@@ -479,4 +479,3 @@ initDB()
     console.error("Không khởi động được server:", error);
     process.exit(1);
   });
-
