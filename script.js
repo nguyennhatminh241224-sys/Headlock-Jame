@@ -152,6 +152,16 @@ const logoutModal = document.getElementById("logoutModal");
 const logoutConfirm = document.getElementById("logoutConfirm");
 const logoutCancel = document.getElementById("logoutCancel");
 const logoutClose = document.getElementById("logoutClose");
+const sensitivityModal = document.getElementById("sensitivityModal");
+const sensitivityClose = document.getElementById("sensitivityClose");
+const sensitivityBrandGrid = document.getElementById("sensitivityBrandGrid");
+const sensitivityModelList = document.getElementById("sensitivityModelList");
+const sensitivitySearch = document.getElementById("sensitivitySearch");
+const sensitivityPresetGrid = document.getElementById("sensitivityPresetGrid");
+const sensitivityValues = document.getElementById("sensitivityValues");
+const sensitivityDeviceName = document.getElementById("sensitivityDeviceName");
+const sensitivityDeviceInfo = document.getElementById("sensitivityDeviceInfo");
+const sensitivityNote = document.getElementById("sensitivityNote");
 
 // Nút / thanh chỉnh vị trí tâm ảo
 const crosshairMoveUp = document.getElementById("crosshairMoveUp");
@@ -369,6 +379,10 @@ if (logoutClose) {
   logoutClose.addEventListener("click", () => closeModal(logoutModal));
 }
 
+if (sensitivityClose) {
+  sensitivityClose.addEventListener("click", () => closeModal(sensitivityModal));
+}
+
 if (logoutConfirm) {
   logoutConfirm.addEventListener("click", () => {
     localStorage.removeItem(STORAGE.KEY);
@@ -392,6 +406,7 @@ function closeAll() {
   if (infoPanel) infoPanel.classList.remove("active");
   closeModal(boostModal);
   closeModal(crosshairModal);
+  closeModal(sensitivityModal);
   closeModal(logoutModal);
   if (overlay) overlay.classList.add("hidden");
 }
@@ -420,6 +435,7 @@ function closeModal(modal) {
   const hasOpen =
     (boostModal && !boostModal.classList.contains("hidden")) ||
     (crosshairModal && !crosshairModal.classList.contains("hidden")) ||
+    (sensitivityModal && !sensitivityModal.classList.contains("hidden")) ||
     (logoutModal && !logoutModal.classList.contains("hidden")) ||
     (infoPanel && infoPanel.classList.contains("active"));
 
@@ -430,6 +446,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
   btn.addEventListener("click", () => {
     closeModal(boostModal);
     closeModal(crosshairModal);
+    closeModal(sensitivityModal);
     closeModal(logoutModal);
   });
 });
@@ -472,6 +489,13 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
       btn.classList.add("active");
       runBoost();
       showToast("Đã bật Boost RAM");
+      return;
+    }
+
+    if (feature === "sensitivity") {
+      openModal(sensitivityModal);
+      initSensitivityModule();
+      showToast("Mở độ nhạy OB54");
       return;
     }
 
@@ -706,6 +730,243 @@ if (crosshairOffBtn) {
       showToast("Đã tắt tâm ảo");
     }
   });
+}
+
+
+// ================= OB54 FREE FIRE SENSITIVITY =================
+
+const SENSITIVITY_PRESETS = {
+  drag: { label: "KÉO TÂM", add: [0, 0, 0, 0, 0, 0] },
+  onetap: { label: "ONE TAP", add: [-6, -4, -5, -6, 4, -8] },
+  headshot: { label: "HEADSHOT", add: [4, 3, 2, 0, -2, 2] },
+  rank: { label: "RANK", add: [-2, -2, -3, -4, 3, -4] },
+  lowfps: { label: "FPS THẤP", add: [-10, -8, -9, -10, 6, -8] },
+  highfps: { label: "FPS CAO", add: [6, 5, 4, 3, -3, 5] }
+};
+
+const SENSITIVITY_LABELS = ["Tổng quan", "Red Dot", "2X Scope", "4X Scope", "AWM Scope", "Free Look"];
+
+const SENSITIVITY_DATA = {
+  Samsung: {
+    tier: "Android • Samsung",
+    models: [
+      ["Galaxy A05", [185,178,168,156,42,70], "Phổ thông"], ["Galaxy A05s", [188,180,170,158,42,70], "Phổ thông"],
+      ["Galaxy A06", [188,181,171,158,42,70], "Phổ thông"], ["Galaxy A13", [190,182,172,160,40,70], "Phổ biến"],
+      ["Galaxy A14", [192,184,174,162,40,72], "Phổ biến"], ["Galaxy A15", [194,185,176,164,39,72], "Phổ biến"],
+      ["Galaxy A16", [195,186,176,165,39,72], "Phổ biến"], ["Galaxy A24", [196,187,177,165,38,72], "Tầm trung"],
+      ["Galaxy A25 5G", [197,187,178,166,38,72], "Tầm trung"], ["Galaxy A34 5G", [198,188,178,166,38,73], "Tầm trung"],
+      ["Galaxy A35 5G", [198,188,179,166,38,73], "Tầm trung"], ["Galaxy A54 5G", [198,187,176,163,38,72], "Khuyên dùng"],
+      ["Galaxy A55 5G", [198,187,176,163,38,72], "Khuyên dùng"], ["Galaxy M14", [193,184,174,162,40,71], "Pin trâu"],
+      ["Galaxy M34", [196,186,176,164,39,72], "Pin trâu"], ["Galaxy S21 FE", [200,190,181,170,35,74], "Cao cấp"],
+      ["Galaxy S22", [200,191,182,171,34,75], "Cao cấp"], ["Galaxy S23", [200,192,184,172,33,76], "Cao cấp"],
+      ["Galaxy S24", [200,193,185,174,32,76], "Cao cấp"]
+    ]
+  },
+  Xiaomi: {
+    tier: "Android • Xiaomi/Redmi/POCO",
+    models: [
+      ["Redmi 10", [190,182,172,160,40,70], "Phổ thông"], ["Redmi 12", [192,184,174,162,40,71], "Phổ biến"],
+      ["Redmi 13", [193,185,175,163,39,72], "Phổ biến"], ["Redmi Note 10", [195,186,176,164,39,72], "Phổ biến"],
+      ["Redmi Note 11", [196,187,177,165,38,72], "Phổ biến"], ["Redmi Note 12", [198,188,178,166,38,73], "Khuyên dùng"],
+      ["Redmi Note 13", [198,189,179,167,37,73], "Khuyên dùng"], ["Redmi Note 14", [199,190,180,168,37,74], "Mới"],
+      ["POCO X3", [198,188,178,166,38,73], "Gaming"], ["POCO X5", [199,190,181,169,36,74], "Gaming"],
+      ["POCO X6", [200,191,182,170,35,75], "Gaming"], ["POCO F3", [200,191,182,171,34,75], "Gaming"],
+      ["POCO F4", [200,192,183,171,34,75], "Gaming"], ["POCO F5", [200,193,184,173,33,76], "Gaming"],
+      ["POCO F6", [200,194,185,174,32,76], "Gaming"], ["Mi 11", [200,191,182,171,34,75], "Cao cấp"],
+      ["Mi 12", [200,192,183,172,34,75], "Cao cấp"], ["Mi 13", [200,193,184,173,33,76], "Cao cấp"],
+      ["Xiaomi 14", [200,194,185,175,32,77], "Cao cấp"]
+    ]
+  },
+  OPPO: {
+    tier: "Android • OPPO",
+    models: [
+      ["OPPO A17", [188,180,170,158,42,70], "Phổ thông"], ["OPPO A18", [190,182,172,160,41,70], "Phổ thông"],
+      ["OPPO A38", [192,184,174,162,40,71], "Phổ biến"], ["OPPO A58", [194,185,175,163,39,72], "Phổ biến"],
+      ["OPPO A60", [195,186,176,164,39,72], "Phổ biến"], ["OPPO A78", [196,187,177,165,38,73], "Tầm trung"],
+      ["OPPO A79", [197,188,178,166,38,73], "Tầm trung"], ["Reno 8", [198,189,179,167,37,74], "Reno"],
+      ["Reno 9", [198,190,180,168,36,74], "Reno"], ["Reno 10", [199,190,181,169,36,75], "Reno"],
+      ["Reno 11", [199,191,182,170,35,75], "Reno"], ["Reno 12", [200,192,183,171,34,75], "Reno"],
+      ["Find X5", [200,192,183,172,34,76], "Cao cấp"], ["Find X6", [200,193,184,173,33,76], "Cao cấp"],
+      ["Find X7", [200,194,185,174,32,77], "Cao cấp"]
+    ]
+  },
+  Realme: {
+    tier: "Android • Realme",
+    models: [
+      ["Realme C33", [186,178,168,156,43,69], "Phổ thông"], ["Realme C35", [188,180,170,158,42,70], "Phổ thông"],
+      ["Realme C51", [190,182,172,160,41,70], "Phổ thông"], ["Realme C53", [192,184,174,162,40,71], "Phổ biến"],
+      ["Realme C55", [194,185,175,163,39,72], "Phổ biến"], ["Realme C65", [195,186,176,164,39,72], "Phổ biến"],
+      ["Narzo 50", [196,187,177,165,38,73], "Narzo"], ["Narzo 60", [197,188,178,166,38,73], "Narzo"],
+      ["Narzo 70", [198,189,179,167,37,74], "Narzo"], ["Realme 9", [196,187,177,165,38,73], "Tầm trung"],
+      ["Realme 10", [197,188,178,166,38,73], "Tầm trung"], ["Realme 11", [198,189,179,167,37,74], "Tầm trung"],
+      ["Realme 12", [199,190,181,169,36,75], "Tầm trung"], ["GT Neo 3", [200,191,182,170,35,75], "Gaming"],
+      ["GT Neo 5", [200,193,184,173,33,76], "Gaming"], ["Realme GT 6", [200,194,185,174,32,77], "Gaming"]
+    ]
+  },
+  Vivo: {
+    tier: "Android • Vivo/iQOO",
+    models: [
+      ["Vivo Y16", [186,178,168,156,43,69], "Phổ thông"], ["Vivo Y17", [188,180,170,158,42,70], "Phổ thông"],
+      ["Vivo Y22", [190,182,172,160,41,70], "Phổ biến"], ["Vivo Y27", [192,184,174,162,40,71], "Phổ biến"],
+      ["Vivo Y28", [193,185,175,163,40,71], "Phổ biến"], ["Vivo Y36", [195,186,176,164,39,72], "Tầm trung"],
+      ["Vivo Y38", [196,187,177,165,38,73], "Tầm trung"], ["Vivo V25", [197,188,178,166,38,73], "V series"],
+      ["Vivo V27", [198,189,179,167,37,74], "V series"], ["Vivo V29", [199,190,181,169,36,75], "V series"],
+      ["Vivo V30", [199,191,182,170,35,75], "V series"], ["Vivo V40", [200,192,183,171,34,76], "V series"],
+      ["iQOO Z7", [198,190,181,169,36,75], "Gaming"], ["iQOO Neo 7", [200,192,183,172,34,76], "Gaming"],
+      ["iQOO Neo 9", [200,194,185,174,32,77], "Gaming"]
+    ]
+  },
+  iPhone: {
+    tier: "iOS • iPhone",
+    models: [
+      ["iPhone 8 Plus", [185,178,166,154,43,68], "Cũ"], ["iPhone X", [188,180,168,156,42,69], "Cũ"],
+      ["iPhone XR", [190,182,170,158,41,70], "Phổ biến"], ["iPhone XS Max", [191,183,172,160,40,71], "Phổ biến"],
+      ["iPhone 11", [193,185,174,162,39,72], "Phổ biến"], ["iPhone 11 Pro Max", [195,187,176,164,38,73], "Phổ biến"],
+      ["iPhone 12", [197,188,178,166,37,73], "Khuyên dùng"], ["iPhone 12 Pro Max", [198,189,179,167,36,74], "Khuyên dùng"],
+      ["iPhone 13", [199,190,181,169,35,75], "Khuyên dùng"], ["iPhone 13 Pro Max", [200,191,182,170,34,75], "Khuyên dùng"],
+      ["iPhone 14", [200,192,183,171,34,76], "Mạnh"], ["iPhone 14 Pro Max", [200,193,184,172,33,76], "Mạnh"],
+      ["iPhone 15", [200,193,184,173,33,77], "Mạnh"], ["iPhone 15 Pro Max", [200,194,185,174,32,77], "Mạnh"],
+      ["iPhone 16", [200,194,185,174,32,78], "Mới"], ["iPhone 16 Pro Max", [200,195,186,175,31,78], "Mới"]
+    ]
+  },
+  Infinix: {
+    tier: "Android • Infinix",
+    models: [
+      ["Infinix Hot 12", [188,180,170,158,42,70], "Phổ thông"], ["Infinix Hot 20", [190,182,172,160,41,70], "Phổ thông"],
+      ["Infinix Hot 30", [192,184,174,162,40,71], "Phổ biến"], ["Infinix Hot 40", [194,185,175,163,39,72], "Phổ biến"],
+      ["Infinix Note 12", [193,184,174,162,40,71], "Note"], ["Infinix Note 30", [196,187,177,165,38,73], "Note"],
+      ["Infinix GT10 Pro", [199,190,181,169,36,75], "Gaming"], ["Infinix GT20 Pro", [200,192,183,172,34,76], "Gaming"]
+    ]
+  },
+  Tecno: {
+    tier: "Android • Tecno",
+    models: [
+      ["Tecno Spark Go", [186,178,168,156,43,69], "Phổ thông"], ["Tecno Spark 10", [188,180,170,158,42,70], "Phổ thông"],
+      ["Tecno Spark 20", [192,184,174,162,40,71], "Phổ biến"], ["Tecno Camon 20", [194,185,175,163,39,72], "Camon"],
+      ["Tecno Camon 30", [196,187,177,165,38,73], "Camon"], ["Tecno Pova 5", [198,188,178,166,38,73], "Gaming"],
+      ["Tecno Pova 6", [199,190,181,169,36,75], "Gaming"]
+    ]
+  }
+};
+
+let selectedSensitivityBrand = localStorage.getItem("sensitivity_brand") || "Samsung";
+let selectedSensitivityModel = localStorage.getItem("sensitivity_model") || "Galaxy A55 5G";
+let selectedSensitivityPreset = localStorage.getItem("sensitivity_preset") || "drag";
+let sensitivityReady = false;
+
+function getSensitivityModels() {
+  return SENSITIVITY_DATA[selectedSensitivityBrand]?.models || [];
+}
+
+function getCurrentSensitivityModel() {
+  const models = getSensitivityModels();
+  return models.find((item) => item[0] === selectedSensitivityModel) || models[0];
+}
+
+function clampSensitivity(value) {
+  return Math.max(0, Math.min(200, Math.round(value)));
+}
+
+function getCurrentSensitivityValues() {
+  const model = getCurrentSensitivityModel();
+  const base = model ? model[1] : [198, 187, 176, 163, 38, 72];
+  const preset = SENSITIVITY_PRESETS[selectedSensitivityPreset] || SENSITIVITY_PRESETS.drag;
+  return base.map((value, index) => clampSensitivity(value + (preset.add[index] || 0)));
+}
+
+function renderSensitivityBrands() {
+  if (!sensitivityBrandGrid) return;
+  sensitivityBrandGrid.innerHTML = Object.keys(SENSITIVITY_DATA).map((brand) => `
+    <button type="button" class="sensitivity-chip ${brand === selectedSensitivityBrand ? "active" : ""}" data-brand="${brand}">${brand.toUpperCase()}</button>
+  `).join("");
+
+  sensitivityBrandGrid.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedSensitivityBrand = btn.dataset.brand;
+      const first = SENSITIVITY_DATA[selectedSensitivityBrand].models[0];
+      selectedSensitivityModel = first[0];
+      if (sensitivitySearch) sensitivitySearch.value = "";
+      localStorage.setItem("sensitivity_brand", selectedSensitivityBrand);
+      localStorage.setItem("sensitivity_model", selectedSensitivityModel);
+      renderSensitivityModule();
+    });
+  });
+}
+
+function renderSensitivityModels() {
+  if (!sensitivityModelList) return;
+  const keyword = (sensitivitySearch?.value || "").trim().toLowerCase();
+  const models = getSensitivityModels().filter((item) => item[0].toLowerCase().includes(keyword));
+
+  sensitivityModelList.innerHTML = models.map((item) => `
+    <button type="button" class="sensitivity-model ${item[0] === selectedSensitivityModel ? "active" : ""}" data-model="${item[0]}">
+      <span>${item[0]}</span>
+      <small>${item[2] || "OB54"}</small>
+    </button>
+  `).join("") || `<div class="sensitivity-empty">Không tìm thấy model.</div>`;
+
+  sensitivityModelList.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedSensitivityModel = btn.dataset.model;
+      localStorage.setItem("sensitivity_model", selectedSensitivityModel);
+      renderSensitivityModule();
+    });
+  });
+}
+
+function renderSensitivityPresets() {
+  if (!sensitivityPresetGrid) return;
+  sensitivityPresetGrid.innerHTML = Object.entries(SENSITIVITY_PRESETS).map(([key, preset]) => `
+    <button type="button" class="sensitivity-preset ${key === selectedSensitivityPreset ? "active" : ""}" data-preset="${key}">${preset.label}</button>
+  `).join("");
+
+  sensitivityPresetGrid.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      selectedSensitivityPreset = btn.dataset.preset;
+      localStorage.setItem("sensitivity_preset", selectedSensitivityPreset);
+      renderSensitivityModule();
+    });
+  });
+}
+
+function renderSensitivityValues() {
+  if (!sensitivityValues) return;
+  const values = getCurrentSensitivityValues();
+  sensitivityValues.innerHTML = values.map((value, index) => `
+    <div class="sensitivity-value-row">
+      <span>${SENSITIVITY_LABELS[index]}</span>
+      <b>${value}</b>
+      <input type="range" min="0" max="200" value="${value}" disabled>
+    </div>
+  `).join("");
+}
+
+function renderSensitivityHeader() {
+  const model = getCurrentSensitivityModel();
+  if (!model) return;
+  if (sensitivityDeviceName) sensitivityDeviceName.textContent = `${selectedSensitivityBrand} ${model[0]}`;
+  if (sensitivityDeviceInfo) sensitivityDeviceInfo.textContent = `${SENSITIVITY_DATA[selectedSensitivityBrand].tier} • ${model[2] || "OB54"}`;
+  if (sensitivityNote) sensitivityNote.textContent = `Độ nhạy OB54 tối ưu cho ${selectedSensitivityBrand} ${model[0]}. Có thể chỉnh nhẹ theo DPI và thói quen kéo tâm.`;
+}
+
+function renderSensitivityModule() {
+  renderSensitivityBrands();
+  renderSensitivityModels();
+  renderSensitivityPresets();
+  renderSensitivityValues();
+  renderSensitivityHeader();
+}
+
+function initSensitivityModule() {
+  if (!SENSITIVITY_DATA[selectedSensitivityBrand]) selectedSensitivityBrand = "Samsung";
+  if (!getCurrentSensitivityModel()) selectedSensitivityModel = getSensitivityModels()[0]?.[0] || "Galaxy A55 5G";
+
+  if (!sensitivityReady && sensitivitySearch) {
+    sensitivitySearch.addEventListener("input", renderSensitivityModels);
+    sensitivityReady = true;
+  }
+
+  renderSensitivityModule();
 }
 
 
