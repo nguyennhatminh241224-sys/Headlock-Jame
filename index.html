@@ -187,22 +187,22 @@
         <span>🎚</span>
         <div>
           <h3>Độ nhạy OB54</h3>
-          <p>Chọn dòng máy để lấy độ nhạy phù hợp</p>
+          <p>Độ nhạy Free Fire theo hãng máy và model</p>
         </div>
       </div>
 
       <div class="ob54-banner">
         <span>◎</span>
-        <p>Lấy cấu hình đề xuất theo máy, model và kiểu chơi.</p>
+        <p>Chọn đúng hãng, model và kiểu chơi để lấy thông số gần giao diện Free Fire OB54.</p>
         <b>OB54</b>
       </div>
 
-      <h4 class="setting-title">Chọn dòng máy</h4>
+      <h4 class="setting-title">1. Chọn hãng</h4>
       <div class="brand-grid" id="sensitivityBrandGrid">
-        <button type="button" data-brand="xiaomi">Xiaomi</button>
         <button type="button" data-brand="samsung">Samsung</button>
-        <button type="button" data-brand="realme">Realme</button>
+        <button type="button" data-brand="xiaomi">Xiaomi</button>
         <button type="button" data-brand="oppo">OPPO</button>
+        <button type="button" data-brand="realme">Realme</button>
         <button type="button" data-brand="vivo">Vivo</button>
         <button type="button" data-brand="iphone">iPhone</button>
         <button type="button" data-brand="tecno">Tecno</button>
@@ -211,28 +211,31 @@
       </div>
 
       <label class="select-label">
-        <span>Chọn model</span>
+        <span>2. Chọn model</span>
         <select id="sensitivityModel"></select>
       </label>
 
-      <h4 class="setting-title">Chọn kiểu chơi</h4>
+      <h4 class="setting-title">3. Chọn kiểu chơi</h4>
       <div class="playstyle-grid" id="sensitivityPlaystyleGrid">
         <button type="button" data-style="default">Mặc định</button>
         <button type="button" data-style="drag">Kéo tâm</button>
-        <button type="button" data-style="oneshot">One shot</button>
-        <button type="button" data-style="balanced">Đầu kéo</button>
+        <button type="button" data-style="oneshot">One Tap</button>
+        <button type="button" data-style="headshot">Headshot</button>
+        <button type="button" data-style="rank">Rank</button>
+        <button type="button" data-style="lowfps">FPS thấp</button>
       </div>
 
+      <h4 class="setting-title">4. Độ nhạy Free Fire</h4>
       <div class="sensitivity-result">
-        <div class="sens-row"><span>Nhìn xung quanh</span><b id="sensGeneral">--</b><i></i></div>
+        <div class="sens-row"><span>Tổng quan</span><b id="sensGeneral">--</b><i></i></div>
         <div class="sens-row"><span>Red Dot</span><b id="sensRedDot">--</b><i></i></div>
-        <div class="sens-row"><span>Ống ngắm 2x</span><b id="sens2x">--</b><i></i></div>
-        <div class="sens-row"><span>Ống ngắm 4x</span><b id="sens4x">--</b><i></i></div>
-        <div class="sens-row"><span>Ống ngắm súng ngắm</span><b id="sensSniper">--</b><i></i></div>
-        <div class="sens-row"><span>Nút bắn tự do</span><b id="sensFreeLook">--</b><i></i></div>
+        <div class="sens-row"><span>2X Scope</span><b id="sens2x">--</b><i></i></div>
+        <div class="sens-row"><span>4X Scope</span><b id="sens4x">--</b><i></i></div>
+        <div class="sens-row"><span>AWM Scope</span><b id="sensSniper">--</b><i></i></div>
+        <div class="sens-row"><span>Free Look</span><b id="sensFreeLook">--</b><i></i></div>
       </div>
 
-      <div class="sens-note" id="sensitivityNote">Phù hợp cho OB54, có thể chỉnh nhẹ theo DPI và thói quen của bạn.</div>
+      <div class="sens-note" id="sensitivityNote">Độ nhạy khuyến nghị cho OB54, bạn có thể chỉnh nhẹ theo DPI và thói quen kéo tâm.</div>
 
       <button class="modal-btn success" id="sensitivityApplyBtn" type="button">Áp dụng độ nhạy</button>
       <button class="modal-btn copy-btn" id="sensitivityCopyBtn" type="button">Sao chép độ nhạy</button>

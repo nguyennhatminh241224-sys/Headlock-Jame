@@ -513,111 +513,232 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
 
 
 // ================= OB54 SENSITIVITY =================
+// Lưu ý: đây là cấu hình gợi ý để người dùng nhập thủ công trong Free Fire OB54.
+// Không can thiệp game, không tự động ngắm, không chỉnh file hệ thống.
 const OB54_SENSITIVITY_DATA = {
-  xiaomi: {
-    label: "Xiaomi",
-    models: {
-      "Redmi Note 12": [100, 95, 90, 85, 75, 60],
-      "Redmi Note 13": [100, 96, 91, 86, 76, 60],
-      "Redmi 10 / 12": [98, 94, 88, 82, 72, 58],
-      "Mi 11 / 12 / 13": [96, 92, 86, 80, 70, 56],
-      "Máy Xiaomi yếu": [100, 98, 94, 88, 78, 62]
-    }
-  },
   samsung: {
     label: "Samsung",
     models: {
-      "Galaxy A12 / A13": [100, 98, 94, 88, 78, 62],
-      "Galaxy A23 / A24": [100, 96, 90, 84, 74, 60],
-      "Galaxy A34 / A54": [98, 94, 88, 82, 72, 58],
-      "Galaxy S21 / S22 / S23": [94, 90, 84, 78, 68, 55],
-      "Máy Samsung yếu": [100, 99, 95, 90, 80, 64]
+      "Galaxy A05": [200, 196, 186, 172, 76, 128],
+      "Galaxy A05s": [200, 195, 185, 171, 75, 126],
+      "Galaxy A06": [200, 196, 186, 172, 76, 128],
+      "Galaxy A13": [199, 194, 184, 170, 74, 124],
+      "Galaxy A14": [199, 193, 183, 169, 73, 122],
+      "Galaxy A15": [198, 192, 182, 168, 72, 120],
+      "Galaxy A16": [198, 192, 182, 168, 72, 120],
+      "Galaxy A24": [197, 190, 179, 165, 68, 116],
+      "Galaxy A25": [196, 189, 178, 164, 66, 114],
+      "Galaxy A34": [195, 187, 176, 162, 62, 110],
+      "Galaxy A35": [194, 186, 175, 160, 60, 108],
+      "Galaxy A54": [193, 184, 172, 158, 56, 104],
+      "Galaxy A55 5G": [192, 183, 171, 157, 55, 102],
+      "Galaxy M14": [199, 194, 184, 170, 74, 124],
+      "Galaxy M34": [196, 189, 178, 164, 66, 114],
+      "Galaxy S21 FE": [188, 178, 166, 150, 48, 96],
+      "Galaxy S22": [186, 176, 164, 148, 46, 94],
+      "Galaxy S23": [184, 174, 162, 146, 44, 92],
+      "Galaxy S24": [182, 172, 160, 144, 42, 90],
+      "Galaxy S25": [181, 171, 159, 143, 41, 88]
     }
   },
-  realme: {
-    label: "Realme",
+
+  xiaomi: {
+    label: "Xiaomi",
     models: {
-      "Realme C55 / C67": [100, 96, 91, 85, 76, 60],
-      "Realme 8 / 9 / 10": [99, 95, 89, 83, 74, 59],
-      "Realme GT Series": [95, 91, 85, 79, 70, 55],
-      "Máy Realme yếu": [100, 99, 94, 88, 79, 63]
+      "Redmi 10": [200, 195, 185, 171, 75, 126],
+      "Redmi 12": [199, 194, 184, 170, 74, 124],
+      "Redmi 13": [198, 193, 183, 169, 73, 122],
+      "Redmi Note 10": [198, 192, 181, 166, 70, 118],
+      "Redmi Note 11": [198, 191, 180, 166, 69, 116],
+      "Redmi Note 12": [197, 190, 179, 165, 68, 115],
+      "Redmi Note 13": [196, 188, 177, 163, 64, 112],
+      "Redmi Note 14": [195, 187, 176, 162, 62, 110],
+      "Redmi K40": [190, 181, 169, 153, 51, 99],
+      "Redmi K50": [188, 179, 167, 151, 49, 97],
+      "Redmi K60": [186, 177, 165, 149, 47, 95],
+      "Mi 11": [188, 179, 167, 151, 49, 97],
+      "Mi 12": [186, 177, 165, 149, 47, 95],
+      "Mi 13": [184, 175, 163, 147, 45, 93],
+      "Xiaomi 13T": [185, 176, 164, 148, 46, 94],
+      "Xiaomi 14": [182, 172, 160, 144, 42, 90]
     }
   },
+
   oppo: {
     label: "OPPO",
     models: {
-      "OPPO A57 / A58": [100, 97, 92, 86, 76, 61],
-      "OPPO A77 / A78": [99, 95, 90, 84, 74, 59],
-      "OPPO Reno 8 / 10": [96, 92, 86, 80, 70, 56],
-      "Máy OPPO yếu": [100, 99, 95, 89, 79, 63]
+      "OPPO A17": [200, 196, 186, 172, 76, 128],
+      "OPPO A18": [200, 196, 186, 172, 76, 128],
+      "OPPO A38": [199, 194, 184, 170, 74, 124],
+      "OPPO A57": [199, 193, 183, 169, 73, 122],
+      "OPPO A58": [198, 192, 182, 168, 72, 120],
+      "OPPO A60": [198, 191, 181, 167, 70, 118],
+      "OPPO A77": [197, 190, 179, 165, 68, 116],
+      "OPPO A78": [196, 189, 178, 164, 66, 114],
+      "OPPO A79": [195, 188, 177, 163, 64, 112],
+      "Reno 8": [191, 182, 170, 154, 52, 100],
+      "Reno 9": [190, 181, 169, 153, 51, 99],
+      "Reno 10": [189, 180, 168, 152, 50, 98],
+      "Reno 11": [187, 178, 166, 150, 48, 96],
+      "Reno 12": [186, 177, 165, 149, 47, 95],
+      "Find X5": [185, 176, 164, 148, 46, 94],
+      "Find X6": [183, 174, 162, 146, 44, 92],
+      "Find X7": [181, 172, 160, 144, 42, 90]
     }
   },
+
+  realme: {
+    label: "Realme",
+    models: {
+      "Realme C33": [200, 196, 186, 172, 76, 128],
+      "Realme C35": [200, 195, 185, 171, 75, 126],
+      "Realme C51": [199, 194, 184, 170, 74, 124],
+      "Realme C53": [199, 193, 183, 169, 73, 122],
+      "Realme C55": [198, 192, 182, 168, 72, 120],
+      "Realme C65": [197, 190, 179, 165, 68, 116],
+      "Narzo 50": [198, 192, 181, 166, 70, 118],
+      "Narzo 60": [196, 189, 178, 164, 66, 114],
+      "Narzo 70": [194, 187, 176, 162, 62, 110],
+      "Realme 9": [197, 190, 179, 165, 68, 116],
+      "Realme 10": [196, 189, 178, 164, 66, 114],
+      "Realme 11": [194, 187, 176, 162, 62, 110],
+      "Realme 12": [193, 185, 173, 159, 58, 106],
+      "GT Neo 3": [187, 178, 166, 150, 48, 96],
+      "GT Neo 5": [184, 175, 163, 147, 45, 93],
+      "Realme GT 6": [182, 172, 160, 144, 42, 90]
+    }
+  },
+
   vivo: {
     label: "Vivo",
     models: {
-      "Vivo Y21 / Y22": [100, 98, 93, 87, 77, 62],
-      "Vivo Y35 / Y36": [99, 95, 90, 84, 74, 59],
-      "Vivo V25 / V27": [96, 92, 86, 80, 70, 56],
-      "Máy Vivo yếu": [100, 99, 95, 90, 80, 64]
+      "Vivo Y16": [200, 196, 186, 172, 76, 128],
+      "Vivo Y17": [200, 196, 186, 172, 76, 128],
+      "Vivo Y22": [199, 194, 184, 170, 74, 124],
+      "Vivo Y27": [198, 192, 182, 168, 72, 120],
+      "Vivo Y28": [198, 191, 181, 167, 70, 118],
+      "Vivo Y36": [197, 190, 179, 165, 68, 116],
+      "Vivo Y38": [196, 189, 178, 164, 66, 114],
+      "Vivo V25": [192, 183, 171, 156, 54, 102],
+      "Vivo V27": [190, 181, 169, 153, 51, 99],
+      "Vivo V29": [188, 179, 167, 151, 49, 97],
+      "Vivo V30": [186, 177, 165, 149, 47, 95],
+      "Vivo V40": [184, 175, 163, 147, 45, 93],
+      "iQOO Z7": [190, 181, 169, 153, 51, 99],
+      "iQOO Neo 7": [186, 177, 165, 149, 47, 95],
+      "iQOO Neo 9": [183, 174, 162, 146, 44, 92]
     }
   },
+
   iphone: {
     label: "iPhone",
     models: {
-      "iPhone 8 / X": [96, 92, 86, 80, 70, 56],
-      "iPhone 11 / 12": [94, 90, 84, 78, 68, 55],
-      "iPhone 13 / 14": [92, 88, 82, 76, 66, 54],
-      "iPhone 15 Series": [90, 86, 80, 74, 64, 52]
+      "iPhone 8": [198, 190, 178, 162, 62, 112],
+      "iPhone 8 Plus": [197, 189, 177, 161, 61, 110],
+      "iPhone X": [196, 188, 176, 160, 60, 108],
+      "iPhone XS": [194, 186, 174, 158, 58, 106],
+      "iPhone XR": [195, 187, 175, 159, 59, 107],
+      "iPhone 11": [192, 183, 171, 155, 54, 102],
+      "iPhone 11 Pro": [190, 181, 169, 153, 52, 100],
+      "iPhone 12": [188, 179, 167, 151, 50, 98],
+      "iPhone 12 Pro": [186, 177, 165, 149, 48, 96],
+      "iPhone 13": [184, 175, 163, 147, 46, 94],
+      "iPhone 13 Pro": [182, 173, 161, 145, 44, 92],
+      "iPhone 14": [181, 172, 160, 144, 43, 90],
+      "iPhone 14 Pro": [179, 170, 158, 142, 41, 88],
+      "iPhone 15": [178, 169, 157, 141, 40, 86],
+      "iPhone 15 Pro": [176, 167, 155, 139, 38, 84],
+      "iPhone 16": [175, 166, 154, 138, 37, 82],
+      "iPhone 16 Pro": [173, 164, 152, 136, 36, 80],
+      "iPhone SE 2020": [193, 184, 172, 156, 55, 103],
+      "iPhone SE 2022": [190, 181, 169, 153, 52, 100]
     }
   },
+
   tecno: {
     label: "Tecno",
     models: {
-      "Tecno Spark 8 / 9": [100, 99, 95, 90, 80, 64],
-      "Tecno Spark 10": [100, 97, 92, 86, 77, 61],
-      "Tecno Camon 19 / 20": [99, 95, 89, 83, 74, 59]
+      "Spark Go": [200, 198, 188, 174, 78, 132],
+      "Spark 10": [200, 196, 186, 172, 76, 128],
+      "Spark 20": [199, 194, 184, 170, 74, 124],
+      "Camon 20": [197, 190, 179, 165, 68, 116],
+      "Camon 30": [194, 187, 176, 162, 62, 110],
+      "Pova 5": [196, 189, 178, 164, 66, 114],
+      "Pova 6": [193, 185, 173, 159, 58, 106]
     }
   },
+
   infinix: {
     label: "Infinix",
     models: {
-      "Infinix Hot 11 / 12": [100, 99, 95, 90, 80, 64],
-      "Infinix Hot 30": [100, 97, 92, 86, 77, 61],
-      "Infinix Note 12 / 30": [99, 95, 89, 83, 74, 59]
+      "Hot 12": [200, 197, 187, 173, 77, 130],
+      "Hot 20": [200, 196, 186, 172, 76, 128],
+      "Hot 30": [199, 194, 184, 170, 74, 124],
+      "Hot 40": [197, 190, 179, 165, 68, 116],
+      "Note 12": [198, 192, 181, 166, 70, 118],
+      "Note 30": [196, 189, 178, 164, 66, 114],
+      "GT 10 Pro": [190, 181, 169, 153, 51, 99],
+      "GT 20 Pro": [186, 177, 165, 149, 47, 95]
     }
   },
+
   poco: {
     label: "POCO",
     models: {
-      "POCO C40 / C55": [100, 98, 94, 88, 78, 62],
-      "POCO X3 / X4": [98, 94, 88, 82, 72, 58],
-      "POCO X5 / F5": [95, 91, 85, 79, 70, 55]
+      "POCO C40": [200, 196, 186, 172, 76, 128],
+      "POCO C55": [200, 195, 185, 171, 75, 126],
+      "POCO C65": [199, 194, 184, 170, 74, 124],
+      "POCO M4": [198, 192, 181, 166, 70, 118],
+      "POCO M5": [197, 190, 179, 165, 68, 116],
+      "POCO M6": [196, 189, 178, 164, 66, 114],
+      "POCO X3": [193, 184, 172, 156, 55, 103],
+      "POCO X4": [191, 182, 170, 154, 52, 100],
+      "POCO X5": [189, 180, 168, 152, 50, 98],
+      "POCO X6": [186, 177, 165, 149, 47, 95],
+      "POCO F3": [188, 179, 167, 151, 49, 97],
+      "POCO F4": [186, 177, 165, 149, 47, 95],
+      "POCO F5": [184, 175, 163, 147, 45, 93],
+      "POCO F6": [182, 172, 160, 144, 42, 90]
     }
   }
 };
 
 const OB54_PLAYSTYLE_OFFSET = {
   default: [0, 0, 0, 0, 0, 0],
-  drag: [3, 3, 2, 2, 1, 0],
-  oneshot: [2, 4, 3, 2, 2, 0],
-  balanced: [1, 2, 1, 1, 0, 0]
+  drag: [4, 5, 4, 3, 2, 3],
+  oneshot: [2, 7, 5, 4, 3, 0],
+  headshot: [5, 8, 5, 3, -2, 2],
+  rank: [-3, -2, -3, -4, -4, -6],
+  lowfps: [6, 5, 4, 2, 0, 4]
 };
 
-let currentSensitivityBrand = localStorage.getItem(STORAGE.SENS_BRAND) || "xiaomi";
+const SENSITIVITY_LABELS = [
+  "Tổng quan",
+  "Red Dot",
+  "2X Scope",
+  "4X Scope",
+  "AWM Scope",
+  "Free Look"
+];
+
+let currentSensitivityBrand = localStorage.getItem(STORAGE.SENS_BRAND) || "samsung";
 let currentSensitivityStyle = localStorage.getItem(STORAGE.SENS_STYLE) || "default";
 
 function getSensitivityValues() {
-  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi;
+  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
   const modelName = sensitivityModel?.value || Object.keys(brandData.models)[0];
   const base = brandData.models[modelName] || Object.values(brandData.models)[0];
   const offset = OB54_PLAYSTYLE_OFFSET[currentSensitivityStyle] || OB54_PLAYSTYLE_OFFSET.default;
-  return base.map((value, index) => Math.max(1, Math.min(100, value + offset[index])));
+
+  return base.map((value, index) => Math.max(1, Math.min(200, value + offset[index])));
 }
 
 function renderSensitivityModels() {
   if (!sensitivityModel) return;
-  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi;
+
+  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
   const savedModel = localStorage.getItem(STORAGE.SENS_MODEL);
+
   sensitivityModel.innerHTML = "";
 
   Object.keys(brandData.models).forEach((modelName) => {
@@ -636,9 +757,14 @@ function renderSensitivityModels() {
 
 function setSensitivityBar(row, value) {
   if (!row) return;
+
   row.textContent = value;
+
   const bar = row.parentElement?.querySelector("i");
-  if (bar) bar.style.setProperty("--sens", value + "%");
+  if (bar) {
+    const percent = Math.round((value / 200) * 100);
+    bar.style.setProperty("--sens", percent + "%");
+  }
 }
 
 function updateSensitivityResult() {
@@ -653,6 +779,7 @@ function updateSensitivityResult() {
   });
 
   const values = getSensitivityValues();
+
   setSensitivityBar(document.getElementById("sensGeneral"), values[0]);
   setSensitivityBar(document.getElementById("sensRedDot"), values[1]);
   setSensitivityBar(document.getElementById("sens2x"), values[2]);
@@ -660,9 +787,9 @@ function updateSensitivityResult() {
   setSensitivityBar(document.getElementById("sensSniper"), values[4]);
   setSensitivityBar(document.getElementById("sensFreeLook"), values[5]);
 
-  const brandLabel = (OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi).label;
+  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
   if (sensitivityNote && sensitivityModel) {
-    sensitivityNote.textContent = `Phù hợp cho ${brandLabel} ${sensitivityModel.value} • OB54 • Có thể chỉnh nhẹ theo DPI.`;
+    sensitivityNote.textContent = `Khuyến nghị OB54 cho ${brandData.label} ${sensitivityModel.value}. Nhập thủ công trong Free Fire: Cài đặt > Độ nhạy.`;
   }
 }
 
@@ -670,9 +797,11 @@ if (sensitivityBrandGrid) {
   sensitivityBrandGrid.addEventListener("click", (event) => {
     const btn = event.target.closest("button[data-brand]");
     if (!btn) return;
+
     currentSensitivityBrand = btn.dataset.brand;
     localStorage.setItem(STORAGE.SENS_BRAND, currentSensitivityBrand);
     localStorage.removeItem(STORAGE.SENS_MODEL);
+
     renderSensitivityModels();
     updateSensitivityResult();
   });
@@ -682,8 +811,10 @@ if (sensitivityPlaystyleGrid) {
   sensitivityPlaystyleGrid.addEventListener("click", (event) => {
     const btn = event.target.closest("button[data-style]");
     if (!btn) return;
+
     currentSensitivityStyle = btn.dataset.style;
     localStorage.setItem(STORAGE.SENS_STYLE, currentSensitivityStyle);
+
     updateSensitivityResult();
   });
 }
@@ -697,15 +828,22 @@ if (sensitivityModel) {
 
 function getSensitivityText() {
   const values = getSensitivityValues();
+  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
+  const model = sensitivityModel?.value || "";
+
   return [
-    `Độ nhạy OB54 - ${(OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi).label} ${sensitivityModel?.value || ""}`,
-    `Nhìn xung quanh: ${values[0]}`,
-    `Red Dot: ${values[1]}`,
-    `Ống ngắm 2x: ${values[2]}`,
-    `Ống ngắm 4x: ${values[3]}`,
-    `Ống ngắm súng ngắm: ${values[4]}`,
-    `Nút bắn tự do: ${values[5]}`
-  ].join("\n");
+    `ĐỘ NHẠY FREE FIRE OB54`,
+    `Máy: ${brandData.label} ${model}`,
+    `Kiểu chơi: ${currentSensitivityStyle}`,
+    ``,
+    `${SENSITIVITY_LABELS[0]}: ${values[0]}`,
+    `${SENSITIVITY_LABELS[1]}: ${values[1]}`,
+    `${SENSITIVITY_LABELS[2]}: ${values[2]}`,
+    `${SENSITIVITY_LABELS[3]}: ${values[3]}`,
+    `${SENSITIVITY_LABELS[4]}: ${values[4]}`,
+    `${SENSITIVITY_LABELS[5]}: ${values[5]}`
+  ].join("
+");
 }
 
 function copySensitivityText(text) {
