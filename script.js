@@ -708,15 +708,26 @@ function getSensitivityText() {
   ].join("\n");
 }
 
+function copySensitivityText(text) {
+  if (hasAndroidBridge() && typeof AndroidBridge.copyText === "function") {
+    AndroidBridge.copyText(text);
+    showToast("Đã sao chép độ nhạy");
+    return;
+  }
+
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    navigator.clipboard.writeText(text)
+      .then(() => showToast("Đã sao chép độ nhạy"))
+      .catch(() => showToast("Không sao chép được trên thiết bị này"));
+    return;
+  }
+
+  showToast("Không sao chép được trên thiết bị này");
+}
+
 if (sensitivityCopyBtn) {
-  sensitivityCopyBtn.addEventListener("click", async () => {
-    const text = getSensitivityText();
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("Đã sao chép độ nhạy");
-    } catch {
-      showToast("Không sao chép được trên thiết bị này");
-    }
+  sensitivityCopyBtn.addEventListener("click", () => {
+    copySensitivityText(getSensitivityText());
   });
 }
 
