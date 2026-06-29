@@ -86,7 +86,10 @@ const STORAGE = {
   CROSSHAIR_COLOR: "crosshair_color",
   CROSSHAIR_STYLE: "crosshair_style",
   CROSSHAIR_X: "crosshair_x",
-  CROSSHAIR_Y: "crosshair_y"
+  CROSSHAIR_Y: "crosshair_y",
+  SENS_BRAND: "ob54_sensitivity_brand",
+  SENS_MODEL: "ob54_sensitivity_model",
+  SENS_STYLE: "ob54_sensitivity_style"
 };
 
 
@@ -149,6 +152,14 @@ const crosshairColor = document.getElementById("crosshairColor");
 const crosshairOnBtn = document.getElementById("crosshairOnBtn");
 const crosshairOffBtn = document.getElementById("crosshairOffBtn");
 const logoutModal = document.getElementById("logoutModal");
+const sensitivityModal = document.getElementById("sensitivityModal");
+const sensitivityClose = document.getElementById("sensitivityClose");
+const sensitivityBrandGrid = document.getElementById("sensitivityBrandGrid");
+const sensitivityModel = document.getElementById("sensitivityModel");
+const sensitivityPlaystyleGrid = document.getElementById("sensitivityPlaystyleGrid");
+const sensitivityApplyBtn = document.getElementById("sensitivityApplyBtn");
+const sensitivityCopyBtn = document.getElementById("sensitivityCopyBtn");
+const sensitivityNote = document.getElementById("sensitivityNote");
 const logoutConfirm = document.getElementById("logoutConfirm");
 const logoutCancel = document.getElementById("logoutCancel");
 const logoutClose = document.getElementById("logoutClose");
@@ -369,6 +380,10 @@ if (logoutClose) {
   logoutClose.addEventListener("click", () => closeModal(logoutModal));
 }
 
+if (sensitivityClose) {
+  sensitivityClose.addEventListener("click", () => closeModal(sensitivityModal));
+}
+
 if (logoutConfirm) {
   logoutConfirm.addEventListener("click", () => {
     localStorage.removeItem(STORAGE.KEY);
@@ -392,6 +407,7 @@ function closeAll() {
   if (infoPanel) infoPanel.classList.remove("active");
   closeModal(boostModal);
   closeModal(crosshairModal);
+  closeModal(sensitivityModal);
   closeModal(logoutModal);
   if (overlay) overlay.classList.add("hidden");
 }
@@ -420,6 +436,7 @@ function closeModal(modal) {
   const hasOpen =
     (boostModal && !boostModal.classList.contains("hidden")) ||
     (crosshairModal && !crosshairModal.classList.contains("hidden")) ||
+    (sensitivityModal && !sensitivityModal.classList.contains("hidden")) ||
     (logoutModal && !logoutModal.classList.contains("hidden")) ||
     (infoPanel && infoPanel.classList.contains("active"));
 
@@ -430,6 +447,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
   btn.addEventListener("click", () => {
     closeModal(boostModal);
     closeModal(crosshairModal);
+    closeModal(sensitivityModal);
     closeModal(logoutModal);
   });
 });
@@ -475,6 +493,12 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
       return;
     }
 
+    if (feature === "sensitivity") {
+      openModal(sensitivityModal);
+      showToast("Mở độ nhạy OB54");
+      return;
+    }
+
     if (feature === "info") {
       if (infoPanel) infoPanel.classList.add("active");
       if (overlay) overlay.classList.remove("hidden");
@@ -486,6 +510,225 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
     showToast(btn.classList.contains("active") ? "Đã bật " + name : "Đã tắt " + name);
   });
 });
+
+
+// ================= OB54 SENSITIVITY =================
+const OB54_SENSITIVITY_DATA = {
+  xiaomi: {
+    label: "Xiaomi",
+    models: {
+      "Redmi Note 12": [100, 95, 90, 85, 75, 60],
+      "Redmi Note 13": [100, 96, 91, 86, 76, 60],
+      "Redmi 10 / 12": [98, 94, 88, 82, 72, 58],
+      "Mi 11 / 12 / 13": [96, 92, 86, 80, 70, 56],
+      "Máy Xiaomi yếu": [100, 98, 94, 88, 78, 62]
+    }
+  },
+  samsung: {
+    label: "Samsung",
+    models: {
+      "Galaxy A12 / A13": [100, 98, 94, 88, 78, 62],
+      "Galaxy A23 / A24": [100, 96, 90, 84, 74, 60],
+      "Galaxy A34 / A54": [98, 94, 88, 82, 72, 58],
+      "Galaxy S21 / S22 / S23": [94, 90, 84, 78, 68, 55],
+      "Máy Samsung yếu": [100, 99, 95, 90, 80, 64]
+    }
+  },
+  realme: {
+    label: "Realme",
+    models: {
+      "Realme C55 / C67": [100, 96, 91, 85, 76, 60],
+      "Realme 8 / 9 / 10": [99, 95, 89, 83, 74, 59],
+      "Realme GT Series": [95, 91, 85, 79, 70, 55],
+      "Máy Realme yếu": [100, 99, 94, 88, 79, 63]
+    }
+  },
+  oppo: {
+    label: "OPPO",
+    models: {
+      "OPPO A57 / A58": [100, 97, 92, 86, 76, 61],
+      "OPPO A77 / A78": [99, 95, 90, 84, 74, 59],
+      "OPPO Reno 8 / 10": [96, 92, 86, 80, 70, 56],
+      "Máy OPPO yếu": [100, 99, 95, 89, 79, 63]
+    }
+  },
+  vivo: {
+    label: "Vivo",
+    models: {
+      "Vivo Y21 / Y22": [100, 98, 93, 87, 77, 62],
+      "Vivo Y35 / Y36": [99, 95, 90, 84, 74, 59],
+      "Vivo V25 / V27": [96, 92, 86, 80, 70, 56],
+      "Máy Vivo yếu": [100, 99, 95, 90, 80, 64]
+    }
+  },
+  iphone: {
+    label: "iPhone",
+    models: {
+      "iPhone 8 / X": [96, 92, 86, 80, 70, 56],
+      "iPhone 11 / 12": [94, 90, 84, 78, 68, 55],
+      "iPhone 13 / 14": [92, 88, 82, 76, 66, 54],
+      "iPhone 15 Series": [90, 86, 80, 74, 64, 52]
+    }
+  },
+  tecno: {
+    label: "Tecno",
+    models: {
+      "Tecno Spark 8 / 9": [100, 99, 95, 90, 80, 64],
+      "Tecno Spark 10": [100, 97, 92, 86, 77, 61],
+      "Tecno Camon 19 / 20": [99, 95, 89, 83, 74, 59]
+    }
+  },
+  infinix: {
+    label: "Infinix",
+    models: {
+      "Infinix Hot 11 / 12": [100, 99, 95, 90, 80, 64],
+      "Infinix Hot 30": [100, 97, 92, 86, 77, 61],
+      "Infinix Note 12 / 30": [99, 95, 89, 83, 74, 59]
+    }
+  },
+  poco: {
+    label: "POCO",
+    models: {
+      "POCO C40 / C55": [100, 98, 94, 88, 78, 62],
+      "POCO X3 / X4": [98, 94, 88, 82, 72, 58],
+      "POCO X5 / F5": [95, 91, 85, 79, 70, 55]
+    }
+  }
+};
+
+const OB54_PLAYSTYLE_OFFSET = {
+  default: [0, 0, 0, 0, 0, 0],
+  drag: [3, 3, 2, 2, 1, 0],
+  oneshot: [2, 4, 3, 2, 2, 0],
+  balanced: [1, 2, 1, 1, 0, 0]
+};
+
+let currentSensitivityBrand = localStorage.getItem(STORAGE.SENS_BRAND) || "xiaomi";
+let currentSensitivityStyle = localStorage.getItem(STORAGE.SENS_STYLE) || "default";
+
+function getSensitivityValues() {
+  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi;
+  const modelName = sensitivityModel?.value || Object.keys(brandData.models)[0];
+  const base = brandData.models[modelName] || Object.values(brandData.models)[0];
+  const offset = OB54_PLAYSTYLE_OFFSET[currentSensitivityStyle] || OB54_PLAYSTYLE_OFFSET.default;
+  return base.map((value, index) => Math.max(1, Math.min(100, value + offset[index])));
+}
+
+function renderSensitivityModels() {
+  if (!sensitivityModel) return;
+  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi;
+  const savedModel = localStorage.getItem(STORAGE.SENS_MODEL);
+  sensitivityModel.innerHTML = "";
+
+  Object.keys(brandData.models).forEach((modelName) => {
+    const option = document.createElement("option");
+    option.value = modelName;
+    option.textContent = modelName;
+    sensitivityModel.appendChild(option);
+  });
+
+  if (savedModel && brandData.models[savedModel]) {
+    sensitivityModel.value = savedModel;
+  }
+
+  localStorage.setItem(STORAGE.SENS_MODEL, sensitivityModel.value);
+}
+
+function setSensitivityBar(row, value) {
+  if (!row) return;
+  row.textContent = value;
+  const bar = row.parentElement?.querySelector("i");
+  if (bar) bar.style.setProperty("--sens", value + "%");
+}
+
+function updateSensitivityResult() {
+  renderSensitivityModels();
+
+  document.querySelectorAll("#sensitivityBrandGrid button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.brand === currentSensitivityBrand);
+  });
+
+  document.querySelectorAll("#sensitivityPlaystyleGrid button").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.style === currentSensitivityStyle);
+  });
+
+  const values = getSensitivityValues();
+  setSensitivityBar(document.getElementById("sensGeneral"), values[0]);
+  setSensitivityBar(document.getElementById("sensRedDot"), values[1]);
+  setSensitivityBar(document.getElementById("sens2x"), values[2]);
+  setSensitivityBar(document.getElementById("sens4x"), values[3]);
+  setSensitivityBar(document.getElementById("sensSniper"), values[4]);
+  setSensitivityBar(document.getElementById("sensFreeLook"), values[5]);
+
+  const brandLabel = (OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi).label;
+  if (sensitivityNote && sensitivityModel) {
+    sensitivityNote.textContent = `Phù hợp cho ${brandLabel} ${sensitivityModel.value} • OB54 • Có thể chỉnh nhẹ theo DPI.`;
+  }
+}
+
+if (sensitivityBrandGrid) {
+  sensitivityBrandGrid.addEventListener("click", (event) => {
+    const btn = event.target.closest("button[data-brand]");
+    if (!btn) return;
+    currentSensitivityBrand = btn.dataset.brand;
+    localStorage.setItem(STORAGE.SENS_BRAND, currentSensitivityBrand);
+    localStorage.removeItem(STORAGE.SENS_MODEL);
+    renderSensitivityModels();
+    updateSensitivityResult();
+  });
+}
+
+if (sensitivityPlaystyleGrid) {
+  sensitivityPlaystyleGrid.addEventListener("click", (event) => {
+    const btn = event.target.closest("button[data-style]");
+    if (!btn) return;
+    currentSensitivityStyle = btn.dataset.style;
+    localStorage.setItem(STORAGE.SENS_STYLE, currentSensitivityStyle);
+    updateSensitivityResult();
+  });
+}
+
+if (sensitivityModel) {
+  sensitivityModel.addEventListener("change", () => {
+    localStorage.setItem(STORAGE.SENS_MODEL, sensitivityModel.value);
+    updateSensitivityResult();
+  });
+}
+
+function getSensitivityText() {
+  const values = getSensitivityValues();
+  return [
+    `Độ nhạy OB54 - ${(OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.xiaomi).label} ${sensitivityModel?.value || ""}`,
+    `Nhìn xung quanh: ${values[0]}`,
+    `Red Dot: ${values[1]}`,
+    `Ống ngắm 2x: ${values[2]}`,
+    `Ống ngắm 4x: ${values[3]}`,
+    `Ống ngắm súng ngắm: ${values[4]}`,
+    `Nút bắn tự do: ${values[5]}`
+  ].join("\n");
+}
+
+if (sensitivityCopyBtn) {
+  sensitivityCopyBtn.addEventListener("click", async () => {
+    const text = getSensitivityText();
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("Đã sao chép độ nhạy");
+    } catch {
+      showToast("Không sao chép được trên thiết bị này");
+    }
+  });
+}
+
+if (sensitivityApplyBtn) {
+  sensitivityApplyBtn.addEventListener("click", () => {
+    showToast("Đã lưu cấu hình OB54");
+    closeModal(sensitivityModal);
+  });
+}
+
+renderSensitivityModels();
+updateSensitivityResult();
 
 // ================= REAL ANDROID CROSSHAIR =================
 
