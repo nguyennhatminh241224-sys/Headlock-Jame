@@ -86,10 +86,7 @@ const STORAGE = {
   CROSSHAIR_COLOR: "crosshair_color",
   CROSSHAIR_STYLE: "crosshair_style",
   CROSSHAIR_X: "crosshair_x",
-  CROSSHAIR_Y: "crosshair_y",
-  SENS_BRAND: "ob54_sensitivity_brand",
-  SENS_MODEL: "ob54_sensitivity_model",
-  SENS_STYLE: "ob54_sensitivity_style"
+  CROSSHAIR_Y: "crosshair_y"
 };
 
 
@@ -152,14 +149,6 @@ const crosshairColor = document.getElementById("crosshairColor");
 const crosshairOnBtn = document.getElementById("crosshairOnBtn");
 const crosshairOffBtn = document.getElementById("crosshairOffBtn");
 const logoutModal = document.getElementById("logoutModal");
-const sensitivityModal = document.getElementById("sensitivityModal");
-const sensitivityClose = document.getElementById("sensitivityClose");
-const sensitivityBrandGrid = document.getElementById("sensitivityBrandGrid");
-const sensitivityModel = document.getElementById("sensitivityModel");
-const sensitivityPlaystyleGrid = document.getElementById("sensitivityPlaystyleGrid");
-const sensitivityApplyBtn = document.getElementById("sensitivityApplyBtn");
-const sensitivityCopyBtn = document.getElementById("sensitivityCopyBtn");
-const sensitivityNote = document.getElementById("sensitivityNote");
 const logoutConfirm = document.getElementById("logoutConfirm");
 const logoutCancel = document.getElementById("logoutCancel");
 const logoutClose = document.getElementById("logoutClose");
@@ -380,10 +369,6 @@ if (logoutClose) {
   logoutClose.addEventListener("click", () => closeModal(logoutModal));
 }
 
-if (sensitivityClose) {
-  sensitivityClose.addEventListener("click", () => closeModal(sensitivityModal));
-}
-
 if (logoutConfirm) {
   logoutConfirm.addEventListener("click", () => {
     localStorage.removeItem(STORAGE.KEY);
@@ -407,7 +392,6 @@ function closeAll() {
   if (infoPanel) infoPanel.classList.remove("active");
   closeModal(boostModal);
   closeModal(crosshairModal);
-  closeModal(sensitivityModal);
   closeModal(logoutModal);
   if (overlay) overlay.classList.add("hidden");
 }
@@ -436,7 +420,6 @@ function closeModal(modal) {
   const hasOpen =
     (boostModal && !boostModal.classList.contains("hidden")) ||
     (crosshairModal && !crosshairModal.classList.contains("hidden")) ||
-    (sensitivityModal && !sensitivityModal.classList.contains("hidden")) ||
     (logoutModal && !logoutModal.classList.contains("hidden")) ||
     (infoPanel && infoPanel.classList.contains("active"));
 
@@ -447,7 +430,6 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
   btn.addEventListener("click", () => {
     closeModal(boostModal);
     closeModal(crosshairModal);
-    closeModal(sensitivityModal);
     closeModal(logoutModal);
   });
 });
@@ -493,12 +475,6 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
       return;
     }
 
-    if (feature === "sensitivity") {
-      openModal(sensitivityModal);
-      showToast("Mở độ nhạy OB54");
-      return;
-    }
-
     if (feature === "info") {
       if (infoPanel) infoPanel.classList.add("active");
       if (overlay) overlay.classList.remove("hidden");
@@ -510,374 +486,6 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
     showToast(btn.classList.contains("active") ? "Đã bật " + name : "Đã tắt " + name);
   });
 });
-
-
-// ================= OB54 SENSITIVITY =================
-// Lưu ý: đây là cấu hình gợi ý để người dùng nhập thủ công trong Free Fire OB54.
-// Không can thiệp game, không tự động ngắm, không chỉnh file hệ thống.
-const OB54_SENSITIVITY_DATA = {
-  samsung: {
-    label: "Samsung",
-    models: {
-      "Galaxy A05": [200, 196, 186, 172, 76, 128],
-      "Galaxy A05s": [200, 195, 185, 171, 75, 126],
-      "Galaxy A06": [200, 196, 186, 172, 76, 128],
-      "Galaxy A13": [199, 194, 184, 170, 74, 124],
-      "Galaxy A14": [199, 193, 183, 169, 73, 122],
-      "Galaxy A15": [198, 192, 182, 168, 72, 120],
-      "Galaxy A16": [198, 192, 182, 168, 72, 120],
-      "Galaxy A24": [197, 190, 179, 165, 68, 116],
-      "Galaxy A25": [196, 189, 178, 164, 66, 114],
-      "Galaxy A34": [195, 187, 176, 162, 62, 110],
-      "Galaxy A35": [194, 186, 175, 160, 60, 108],
-      "Galaxy A54": [193, 184, 172, 158, 56, 104],
-      "Galaxy A55 5G": [192, 183, 171, 157, 55, 102],
-      "Galaxy M14": [199, 194, 184, 170, 74, 124],
-      "Galaxy M34": [196, 189, 178, 164, 66, 114],
-      "Galaxy S21 FE": [188, 178, 166, 150, 48, 96],
-      "Galaxy S22": [186, 176, 164, 148, 46, 94],
-      "Galaxy S23": [184, 174, 162, 146, 44, 92],
-      "Galaxy S24": [182, 172, 160, 144, 42, 90],
-      "Galaxy S25": [181, 171, 159, 143, 41, 88]
-    }
-  },
-
-  xiaomi: {
-    label: "Xiaomi",
-    models: {
-      "Redmi 10": [200, 195, 185, 171, 75, 126],
-      "Redmi 12": [199, 194, 184, 170, 74, 124],
-      "Redmi 13": [198, 193, 183, 169, 73, 122],
-      "Redmi Note 10": [198, 192, 181, 166, 70, 118],
-      "Redmi Note 11": [198, 191, 180, 166, 69, 116],
-      "Redmi Note 12": [197, 190, 179, 165, 68, 115],
-      "Redmi Note 13": [196, 188, 177, 163, 64, 112],
-      "Redmi Note 14": [195, 187, 176, 162, 62, 110],
-      "Redmi K40": [190, 181, 169, 153, 51, 99],
-      "Redmi K50": [188, 179, 167, 151, 49, 97],
-      "Redmi K60": [186, 177, 165, 149, 47, 95],
-      "Mi 11": [188, 179, 167, 151, 49, 97],
-      "Mi 12": [186, 177, 165, 149, 47, 95],
-      "Mi 13": [184, 175, 163, 147, 45, 93],
-      "Xiaomi 13T": [185, 176, 164, 148, 46, 94],
-      "Xiaomi 14": [182, 172, 160, 144, 42, 90]
-    }
-  },
-
-  oppo: {
-    label: "OPPO",
-    models: {
-      "OPPO A17": [200, 196, 186, 172, 76, 128],
-      "OPPO A18": [200, 196, 186, 172, 76, 128],
-      "OPPO A38": [199, 194, 184, 170, 74, 124],
-      "OPPO A57": [199, 193, 183, 169, 73, 122],
-      "OPPO A58": [198, 192, 182, 168, 72, 120],
-      "OPPO A60": [198, 191, 181, 167, 70, 118],
-      "OPPO A77": [197, 190, 179, 165, 68, 116],
-      "OPPO A78": [196, 189, 178, 164, 66, 114],
-      "OPPO A79": [195, 188, 177, 163, 64, 112],
-      "Reno 8": [191, 182, 170, 154, 52, 100],
-      "Reno 9": [190, 181, 169, 153, 51, 99],
-      "Reno 10": [189, 180, 168, 152, 50, 98],
-      "Reno 11": [187, 178, 166, 150, 48, 96],
-      "Reno 12": [186, 177, 165, 149, 47, 95],
-      "Find X5": [185, 176, 164, 148, 46, 94],
-      "Find X6": [183, 174, 162, 146, 44, 92],
-      "Find X7": [181, 172, 160, 144, 42, 90]
-    }
-  },
-
-  realme: {
-    label: "Realme",
-    models: {
-      "Realme C33": [200, 196, 186, 172, 76, 128],
-      "Realme C35": [200, 195, 185, 171, 75, 126],
-      "Realme C51": [199, 194, 184, 170, 74, 124],
-      "Realme C53": [199, 193, 183, 169, 73, 122],
-      "Realme C55": [198, 192, 182, 168, 72, 120],
-      "Realme C65": [197, 190, 179, 165, 68, 116],
-      "Narzo 50": [198, 192, 181, 166, 70, 118],
-      "Narzo 60": [196, 189, 178, 164, 66, 114],
-      "Narzo 70": [194, 187, 176, 162, 62, 110],
-      "Realme 9": [197, 190, 179, 165, 68, 116],
-      "Realme 10": [196, 189, 178, 164, 66, 114],
-      "Realme 11": [194, 187, 176, 162, 62, 110],
-      "Realme 12": [193, 185, 173, 159, 58, 106],
-      "GT Neo 3": [187, 178, 166, 150, 48, 96],
-      "GT Neo 5": [184, 175, 163, 147, 45, 93],
-      "Realme GT 6": [182, 172, 160, 144, 42, 90]
-    }
-  },
-
-  vivo: {
-    label: "Vivo",
-    models: {
-      "Vivo Y16": [200, 196, 186, 172, 76, 128],
-      "Vivo Y17": [200, 196, 186, 172, 76, 128],
-      "Vivo Y22": [199, 194, 184, 170, 74, 124],
-      "Vivo Y27": [198, 192, 182, 168, 72, 120],
-      "Vivo Y28": [198, 191, 181, 167, 70, 118],
-      "Vivo Y36": [197, 190, 179, 165, 68, 116],
-      "Vivo Y38": [196, 189, 178, 164, 66, 114],
-      "Vivo V25": [192, 183, 171, 156, 54, 102],
-      "Vivo V27": [190, 181, 169, 153, 51, 99],
-      "Vivo V29": [188, 179, 167, 151, 49, 97],
-      "Vivo V30": [186, 177, 165, 149, 47, 95],
-      "Vivo V40": [184, 175, 163, 147, 45, 93],
-      "iQOO Z7": [190, 181, 169, 153, 51, 99],
-      "iQOO Neo 7": [186, 177, 165, 149, 47, 95],
-      "iQOO Neo 9": [183, 174, 162, 146, 44, 92]
-    }
-  },
-
-  iphone: {
-    label: "iPhone",
-    models: {
-      "iPhone 8": [198, 190, 178, 162, 62, 112],
-      "iPhone 8 Plus": [197, 189, 177, 161, 61, 110],
-      "iPhone X": [196, 188, 176, 160, 60, 108],
-      "iPhone XS": [194, 186, 174, 158, 58, 106],
-      "iPhone XR": [195, 187, 175, 159, 59, 107],
-      "iPhone 11": [192, 183, 171, 155, 54, 102],
-      "iPhone 11 Pro": [190, 181, 169, 153, 52, 100],
-      "iPhone 12": [188, 179, 167, 151, 50, 98],
-      "iPhone 12 Pro": [186, 177, 165, 149, 48, 96],
-      "iPhone 13": [184, 175, 163, 147, 46, 94],
-      "iPhone 13 Pro": [182, 173, 161, 145, 44, 92],
-      "iPhone 14": [181, 172, 160, 144, 43, 90],
-      "iPhone 14 Pro": [179, 170, 158, 142, 41, 88],
-      "iPhone 15": [178, 169, 157, 141, 40, 86],
-      "iPhone 15 Pro": [176, 167, 155, 139, 38, 84],
-      "iPhone 16": [175, 166, 154, 138, 37, 82],
-      "iPhone 16 Pro": [173, 164, 152, 136, 36, 80],
-      "iPhone SE 2020": [193, 184, 172, 156, 55, 103],
-      "iPhone SE 2022": [190, 181, 169, 153, 52, 100]
-    }
-  },
-
-  tecno: {
-    label: "Tecno",
-    models: {
-      "Spark Go": [200, 198, 188, 174, 78, 132],
-      "Spark 10": [200, 196, 186, 172, 76, 128],
-      "Spark 20": [199, 194, 184, 170, 74, 124],
-      "Camon 20": [197, 190, 179, 165, 68, 116],
-      "Camon 30": [194, 187, 176, 162, 62, 110],
-      "Pova 5": [196, 189, 178, 164, 66, 114],
-      "Pova 6": [193, 185, 173, 159, 58, 106]
-    }
-  },
-
-  infinix: {
-    label: "Infinix",
-    models: {
-      "Hot 12": [200, 197, 187, 173, 77, 130],
-      "Hot 20": [200, 196, 186, 172, 76, 128],
-      "Hot 30": [199, 194, 184, 170, 74, 124],
-      "Hot 40": [197, 190, 179, 165, 68, 116],
-      "Note 12": [198, 192, 181, 166, 70, 118],
-      "Note 30": [196, 189, 178, 164, 66, 114],
-      "GT 10 Pro": [190, 181, 169, 153, 51, 99],
-      "GT 20 Pro": [186, 177, 165, 149, 47, 95]
-    }
-  },
-
-  poco: {
-    label: "POCO",
-    models: {
-      "POCO C40": [200, 196, 186, 172, 76, 128],
-      "POCO C55": [200, 195, 185, 171, 75, 126],
-      "POCO C65": [199, 194, 184, 170, 74, 124],
-      "POCO M4": [198, 192, 181, 166, 70, 118],
-      "POCO M5": [197, 190, 179, 165, 68, 116],
-      "POCO M6": [196, 189, 178, 164, 66, 114],
-      "POCO X3": [193, 184, 172, 156, 55, 103],
-      "POCO X4": [191, 182, 170, 154, 52, 100],
-      "POCO X5": [189, 180, 168, 152, 50, 98],
-      "POCO X6": [186, 177, 165, 149, 47, 95],
-      "POCO F3": [188, 179, 167, 151, 49, 97],
-      "POCO F4": [186, 177, 165, 149, 47, 95],
-      "POCO F5": [184, 175, 163, 147, 45, 93],
-      "POCO F6": [182, 172, 160, 144, 42, 90]
-    }
-  }
-};
-
-const OB54_PLAYSTYLE_OFFSET = {
-  default: [0, 0, 0, 0, 0, 0],
-  drag: [4, 5, 4, 3, 2, 3],
-  oneshot: [2, 7, 5, 4, 3, 0],
-  headshot: [5, 8, 5, 3, -2, 2],
-  rank: [-3, -2, -3, -4, -4, -6],
-  lowfps: [6, 5, 4, 2, 0, 4]
-};
-
-const SENSITIVITY_LABELS = [
-  "Tổng quan",
-  "Red Dot",
-  "2X Scope",
-  "4X Scope",
-  "AWM Scope",
-  "Free Look"
-];
-
-let currentSensitivityBrand = localStorage.getItem(STORAGE.SENS_BRAND) || "samsung";
-let currentSensitivityStyle = localStorage.getItem(STORAGE.SENS_STYLE) || "default";
-
-function getSensitivityValues() {
-  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
-  const modelName = sensitivityModel?.value || Object.keys(brandData.models)[0];
-  const base = brandData.models[modelName] || Object.values(brandData.models)[0];
-  const offset = OB54_PLAYSTYLE_OFFSET[currentSensitivityStyle] || OB54_PLAYSTYLE_OFFSET.default;
-
-  return base.map((value, index) => Math.max(1, Math.min(200, value + offset[index])));
-}
-
-function renderSensitivityModels() {
-  if (!sensitivityModel) return;
-
-  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
-  const savedModel = localStorage.getItem(STORAGE.SENS_MODEL);
-
-  sensitivityModel.innerHTML = "";
-
-  Object.keys(brandData.models).forEach((modelName) => {
-    const option = document.createElement("option");
-    option.value = modelName;
-    option.textContent = modelName;
-    sensitivityModel.appendChild(option);
-  });
-
-  if (savedModel && brandData.models[savedModel]) {
-    sensitivityModel.value = savedModel;
-  }
-
-  localStorage.setItem(STORAGE.SENS_MODEL, sensitivityModel.value);
-}
-
-function setSensitivityBar(row, value) {
-  if (!row) return;
-
-  row.textContent = value;
-
-  const bar = row.parentElement?.querySelector("i");
-  if (bar) {
-    const percent = Math.round((value / 200) * 100);
-    bar.style.setProperty("--sens", percent + "%");
-  }
-}
-
-function updateSensitivityResult() {
-  renderSensitivityModels();
-
-  document.querySelectorAll("#sensitivityBrandGrid button").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.brand === currentSensitivityBrand);
-  });
-
-  document.querySelectorAll("#sensitivityPlaystyleGrid button").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.style === currentSensitivityStyle);
-  });
-
-  const values = getSensitivityValues();
-
-  setSensitivityBar(document.getElementById("sensGeneral"), values[0]);
-  setSensitivityBar(document.getElementById("sensRedDot"), values[1]);
-  setSensitivityBar(document.getElementById("sens2x"), values[2]);
-  setSensitivityBar(document.getElementById("sens4x"), values[3]);
-  setSensitivityBar(document.getElementById("sensSniper"), values[4]);
-  setSensitivityBar(document.getElementById("sensFreeLook"), values[5]);
-
-  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
-  if (sensitivityNote && sensitivityModel) {
-    sensitivityNote.textContent = `Khuyến nghị OB54 cho ${brandData.label} ${sensitivityModel.value}. Nhập thủ công trong Free Fire: Cài đặt > Độ nhạy.`;
-  }
-}
-
-if (sensitivityBrandGrid) {
-  sensitivityBrandGrid.addEventListener("click", (event) => {
-    const btn = event.target.closest("button[data-brand]");
-    if (!btn) return;
-
-    currentSensitivityBrand = btn.dataset.brand;
-    localStorage.setItem(STORAGE.SENS_BRAND, currentSensitivityBrand);
-    localStorage.removeItem(STORAGE.SENS_MODEL);
-
-    renderSensitivityModels();
-    updateSensitivityResult();
-  });
-}
-
-if (sensitivityPlaystyleGrid) {
-  sensitivityPlaystyleGrid.addEventListener("click", (event) => {
-    const btn = event.target.closest("button[data-style]");
-    if (!btn) return;
-
-    currentSensitivityStyle = btn.dataset.style;
-    localStorage.setItem(STORAGE.SENS_STYLE, currentSensitivityStyle);
-
-    updateSensitivityResult();
-  });
-}
-
-if (sensitivityModel) {
-  sensitivityModel.addEventListener("change", () => {
-    localStorage.setItem(STORAGE.SENS_MODEL, sensitivityModel.value);
-    updateSensitivityResult();
-  });
-}
-
-function getSensitivityText() {
-  const values = getSensitivityValues();
-  const brandData = OB54_SENSITIVITY_DATA[currentSensitivityBrand] || OB54_SENSITIVITY_DATA.samsung;
-  const model = sensitivityModel?.value || "";
-
-  return [
-    `ĐỘ NHẠY FREE FIRE OB54`,
-    `Máy: ${brandData.label} ${model}`,
-    `Kiểu chơi: ${currentSensitivityStyle}`,
-    ``,
-    `${SENSITIVITY_LABELS[0]}: ${values[0]}`,
-    `${SENSITIVITY_LABELS[1]}: ${values[1]}`,
-    `${SENSITIVITY_LABELS[2]}: ${values[2]}`,
-    `${SENSITIVITY_LABELS[3]}: ${values[3]}`,
-    `${SENSITIVITY_LABELS[4]}: ${values[4]}`,
-    `${SENSITIVITY_LABELS[5]}: ${values[5]}`
-  ].join("
-");
-}
-
-function copySensitivityText(text) {
-  if (hasAndroidBridge() && typeof AndroidBridge.copyText === "function") {
-    AndroidBridge.copyText(text);
-    showToast("Đã sao chép độ nhạy");
-    return;
-  }
-
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-    navigator.clipboard.writeText(text)
-      .then(() => showToast("Đã sao chép độ nhạy"))
-      .catch(() => showToast("Không sao chép được trên thiết bị này"));
-    return;
-  }
-
-  showToast("Không sao chép được trên thiết bị này");
-}
-
-if (sensitivityCopyBtn) {
-  sensitivityCopyBtn.addEventListener("click", () => {
-    copySensitivityText(getSensitivityText());
-  });
-}
-
-if (sensitivityApplyBtn) {
-  sensitivityApplyBtn.addEventListener("click", () => {
-    showToast("Đã lưu cấu hình OB54");
-    closeModal(sensitivityModal);
-  });
-}
-
-renderSensitivityModels();
-updateSensitivityResult();
 
 // ================= REAL ANDROID CROSSHAIR =================
 
