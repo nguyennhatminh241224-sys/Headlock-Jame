@@ -109,12 +109,78 @@
     <section class="security-box">
       <span>🛡</span><div><b>HỆ THỐNG AN TOÀN</b><small>Cam kết bảo mật - Không thu thập dữ liệu</small></div><span class="shield-fade">✓</span>
     </section>
+<section class="tab-page hidden" id="historyPage">
+  <div class="tab-card">
+    <h2>◴ Lịch sử</h2>
+    <p class="tab-sub">Lưu lại các thao tác bạn đã sử dụng gần đây.</p>
 
-    <nav class="bottom-nav">
-      <button class="active" type="button">⌂<span>Trang chủ</span></button>
-      <button type="button">◴<span>Lịch sử</span></button>
-      <button type="button">⚙<span>Cài đặt</span></button>
-    </nav>
+    <div id="historyList" class="history-list">
+      <div class="history-empty">Chưa có lịch sử hoạt động.</div>
+    </div>
+
+    <button class="full-btn danger-soft" id="clearHistoryBtn" type="button">
+      Xóa lịch sử
+    </button>
+  </div>
+</section>
+
+<section class="tab-page hidden" id="settingsPage">
+  <div class="tab-card">
+    <h2>⚙ Cài đặt</h2>
+    <p class="tab-sub">Tùy chỉnh giao diện và hành vi ứng dụng.</p>
+
+    <button class="setting-row" type="button" data-setting="sound">
+      <span>🔊</span>
+      <div>
+        <b>Âm thanh thông báo</b>
+        <small>Bật / tắt âm báo trong app</small>
+      </div>
+      <i class="setting-switch"></i>
+    </button>
+
+    <button class="setting-row" type="button" data-setting="vibrate">
+      <span>📳</span>
+      <div>
+        <b>Rung khi bấm</b>
+        <small>Phản hồi rung nhẹ khi thao tác</small>
+      </div>
+      <i class="setting-switch"></i>
+    </button>
+
+    <button class="setting-row" type="button" data-setting="saveTab">
+      <span>💾</span>
+      <div>
+        <b>Lưu tab đang mở</b>
+        <small>Mở lại đúng tab lần trước</small>
+      </div>
+      <i class="setting-switch"></i>
+    </button>
+
+    <button class="setting-row logout-setting" id="settingsLogoutBtn" type="button">
+      <span>🚪</span>
+      <div>
+        <b>Đăng xuất</b>
+        <small>Thoát khỏi ứng dụng</small>
+      </div>
+      <em>›</em>
+    </button>
+  </div>
+</section>
+
+<nav class="bottom-nav" id="bottomNav">
+  <button class="active" type="button" data-tab="home">
+    ⌂<span>Trang chủ</span>
+  </button>
+
+  <button type="button" data-tab="history">
+    ◴<span>Lịch sử</span>
+  </button>
+
+  <button type="button" data-tab="settings">
+    ⚙<span>Cài đặt</span>
+  </button>
+</nav>
+ 
   </main>
 
   <aside class="info-panel" id="infoPanel">
