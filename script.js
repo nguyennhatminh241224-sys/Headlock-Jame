@@ -1034,3 +1034,189 @@ if (document.readyState === "loading") {
 } else {
   startHeadlockApp();
 }
+(function () {
+  const navButtons = document.querySelectorAll("#bottomNav button");
+  const historyPage = document.getElementById("historyPage");
+  const settingsPage = document.getElementById("settingsPage");
+  const historyList = document.getElementById("historyList");
+  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  const settingsLogoutBtn = document.getElementById("settingsLogoutBtn");
+
+  const homeSections = [
+    document.querySelector(".hero-card"),
+    document.querySelector("#statsCard"),
+    document.querySelector(".simple-menu"),
+    document.querySelector(".security-box")
+  ].filter(Boolean);
+
+  const HISTORY_KEY = "headlock_history";
+  const SETTINGS_KEY = "headlock_settings";
+  const ACTIVE_TAB_KEY = "headlock_active_tab";
+
+  function getHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveHistory(items) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 30)));
+  }
+
+  function addHistory(text) {
+    const items = getHistory();
+
+    items.unshift({
+      text,
+      time: new Date().toLocaleString("vi-VN")
+    });
+
+    saveHistory(items);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    if (!historyList) return;
+
+    const items = getHistory();
+
+    if (!items.length) {
+      historyList.innerHTML = `<div class="history-empty">Chưa có lịch sử hoạt động.</div>`;
+      return;
+    }
+
+    historyList.innerHTML = items.map(item => `
+      <div class="history-item">
+        <b>${item.text}</b>
+        <small>${item.time}</small>
+      </div>
+    `).join("");
+  }
+
+  function getSettings() {
+    try {
+      return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {
+        sound: true,
+        vibrate: true,
+        saveTab: true
+      };
+    } catch {
+      return {
+        sound: true,
+        vibrate: true,
+        saveTab: true
+      };
+    }
+  }
+
+  function saveSettings(settings) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+
+  function renderSettings() {
+    const settings = getSettings();
+
+    document.querySelectorAll(".setting-row[data-setting]").forEach(row => {
+      const key = row.dataset.setting;
+      row.classList.toggle("active", !!settings[key]);
+    });
+  }
+
+  function openTab(tab) {
+    homeSections.forEach(section => {
+      section.style.display = tab === "home" ? "" : "none";
+    });
+
+    if (historyPage) {
+      historyPage.classList.toggle("hidden", tab !== "history");
+    }
+
+    if (settingsPage) {
+      settingsPage.classList.toggle("hidden", tab !== "settings");
+    }
+
+    navButtons.forEach(button => {
+      button.classList.toggle("active", button.dataset.tab === tab);
+    });
+
+    const settings = getSettings();
+    if (settings.saveTab) {
+      localStorage.setItem(ACTIVE_TAB_KEY, tab);
+    }
+
+    if (tab === "history") {
+      renderHistory();
+    }
+
+    if (tab === "settings") {
+      renderSettings();
+    }
+  }
+
+  navButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const tab = button.dataset.tab;
+      openTab(tab);
+
+      if (tab === "history") addHistory("Đã mở mục Lịch sử");
+      if (tab === "settings") addHistory("Đã mở mục Cài đặt");
+
+      const settings = getSettings();
+      if (settings.vibrate && navigator.vibrate) {
+        navigator.vibrate(25);
+      }
+    });
+  });
+
+  document.querySelectorAll(".setting-row[data-setting]").forEach(row => {
+    row.addEventListener("click", () => {
+      const key = row.dataset.setting;
+      const settings = getSettings();
+
+      settings[key] = !settings[key];
+      saveSettings(settings);
+      renderSettings();
+
+      addHistory(`Đã ${settings[key] ? "bật" : "tắt"} ${row.querySelector("b").textContent}`);
+    });
+  });
+
+  document.querySelectorAll(".menu-row[data-feature]").forEach(row => {
+    row.addEventListener("click", () => {
+      const name = row.querySelector("b")?.textContent || "Tính năng";
+      addHistory(`Đã mở ${name}`);
+    });
+  });
+
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener("click", () => {
+      localStorage.removeItem(HISTORY_KEY);
+      renderHistory();
+    });
+  }
+
+  if (settingsLogoutBtn) {
+    settingsLogoutBtn.addEventListener("click", () => {
+      addHistory("Đã bấm Đăng xuất trong Cài đặt");
+
+      const appLogoutBtn = document.getElementById("appLogoutBtn");
+      if (appLogoutBtn) {
+        appLogoutBtn.click();
+      } else {
+        const logoutModal = document.getElementById("logoutModal");
+        const overlay = document.getElementById("overlay");
+
+        if (logoutModal) logoutModal.classList.remove("hidden");
+        if (overlay) overlay.classList.remove("hidden");
+      }
+    });
+  }
+
+  renderHistory();
+  renderSettings();
+
+  const savedTab = localStorage.getItem(ACTIVE_TAB_KEY);
+  openTab(savedTab || "home");
+})();
