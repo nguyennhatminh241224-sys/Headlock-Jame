@@ -493,11 +493,13 @@ function runBoost() {
 document.querySelectorAll(".menu-row").forEach((btn) => {
   btn.addEventListener("click", () => {
     const feature = btn.dataset.feature;
+    const name = btn.querySelector("b")?.textContent || "Tính năng";
 
     if (feature === "speed") {
       openModal(speedModal);
       renderSpeedUI();
       showToast("Mở SPEED");
+      addHistorySafe("Đã mở SPEED", "speed");
       return;
     }
 
@@ -505,6 +507,7 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
       btn.classList.add("active");
       openModal(crosshairModal);
       showToast("Mở chỉnh tâm ảo");
+      addHistorySafe("Đã mở Crosshair", "feature");
       return;
     }
 
@@ -512,6 +515,7 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
       btn.classList.add("active");
       runBoost();
       showToast("Đã bật Boost RAM");
+      addHistorySafe("Đã bật Boost RAM", "boost");
       return;
     }
 
@@ -519,35 +523,44 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
       openModal(sensitivityModal);
       initSensitivityModule();
       showToast("Mở độ nhạy OB54");
+      addHistorySafe("Đã mở Độ nhạy OB54", "feature");
       return;
     }
 
     if (feature === "info") {
       if (infoPanel) infoPanel.classList.add("active");
       if (overlay) overlay.classList.remove("hidden");
+      addHistorySafe("Đã mở Thông Tin", "system");
       return;
     }
 
     btn.classList.toggle("active");
-    const name = btn.querySelector("b")?.textContent || "Tính năng";
-    showToast(btn.classList.contains("active") ? "Đã bật " + name : "Đã tắt " + name);
+    const isActive = btn.classList.contains("active");
+    showToast(isActive ? "Đã bật " + name : "Đã tắt " + name);
+    addHistorySafe(`${isActive ? "Đã bật" : "Đã tắt"} ${name}`, "toggle");
   });
 });
 
 
 // ================= SPEED UI OPTIMIZER =================
 
-function addHistorySafe(text, icon = "⚡") {
+function addHistorySafe(text, type = "feature") {
   try {
     if (window.HeadlockHistory && typeof window.HeadlockHistory.add === "function") {
-      window.HeadlockHistory.add(text, icon);
+      window.HeadlockHistory.add(text, type);
       return;
     }
 
     const key = "headlock_history";
     const items = JSON.parse(localStorage.getItem(key)) || [];
-    items.unshift({ text, icon, time: new Date().toLocaleString("vi-VN") });
-    localStorage.setItem(key, JSON.stringify(items.slice(0, 40)));
+    items.unshift({
+      text,
+      type,
+      icon: type,
+      time: new Date().toLocaleString("vi-VN"),
+      timestamp: Date.now()
+    });
+    localStorage.setItem(key, JSON.stringify(items.slice(0, 80)));
   } catch (error) {
     console.warn("Không thể lưu lịch sử:", error);
   }
@@ -858,6 +871,8 @@ if (crosshairOnBtn) {
     } else {
       showToast("Chỉ hoạt động trong app Android");
     }
+
+    addHistorySafe("Đã bật Crosshair", "toggle");
   });
 }
 
@@ -866,7 +881,11 @@ if (crosshairOffBtn) {
     if (hasAndroidBridge() && typeof AndroidBridge.stopCrosshair === "function") {
       AndroidBridge.stopCrosshair();
       showToast("Đã tắt tâm ảo");
+    } else {
+      showToast("Đã tắt tâm ảo");
     }
+
+    addHistorySafe("Đã tắt Crosshair", "toggle");
   });
 }
 
@@ -1186,6 +1205,11 @@ if (document.readyState === "loading") {
   const historyList = document.getElementById("historyList");
   const clearHistoryBtn = document.getElementById("clearHistoryBtn");
   const refreshHistoryBtn = document.getElementById("refreshHistoryBtn");
+  const historyExportBtn = document.getElementById("historyExportBtn");
+  const historySearchInput = document.getElementById("historySearchInput");
+  const historyTotalCount = document.getElementById("historyTotalCount");
+  const historyTodayCount = document.getElementById("historyTodayCount");
+  const historyLatestTime = document.getElementById("historyLatestTime");
   const settingsLogoutBtn = document.getElementById("settingsLogoutBtn");
 
   const homeSections = [
@@ -1208,9 +1232,10 @@ if (document.readyState === "loading") {
   };
 
   const validTabs = ["home", "history", "settings"];
+  let currentHistoryFilter = "all";
 
   function escapeHTML(value) {
-    return String(value)
+    return String(value ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
@@ -1230,54 +1255,107 @@ if (document.readyState === "loading") {
     localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify({ ...DEFAULT_SETTINGS, ...settings }));
   }
 
+  function normalizeHistoryItem(item) {
+    const raw = item && typeof item === "object" ? item : {};
+    const text = String(raw.text || raw.title || "Hoạt động");
+    const time = String(raw.time || new Date(raw.timestamp || Date.now()).toLocaleString("vi-VN"));
+    const timestamp = Number(raw.timestamp) || Date.parse(time) || Date.now();
+    const type = normalizeHistoryType(raw.type || raw.icon || text);
+
+    return {
+      text,
+      time,
+      timestamp,
+      type,
+      icon: getIconByType(type, raw.icon)
+    };
+  }
+
+  function normalizeHistoryType(value) {
+    const raw = String(value || "").toLowerCase();
+    if (raw.includes("speed")) return "speed";
+    if (raw.includes("boost") || raw.includes("🚀")) return "boost";
+    if (raw.includes("bật") || raw.includes("tắt") || raw.includes("toggle")) return "toggle";
+    if (raw.includes("cài") || raw.includes("setting") || raw.includes("⚙")) return "settings";
+    if (raw.includes("trang chủ") || raw.includes("lịch sử") || raw.includes("thông tin") || raw.includes("system") || raw.includes("⌂") || raw.includes("◴")) return "system";
+    return "feature";
+  }
+
+  function getIconByType(type, fallback) {
+    const fallbackText = String(fallback || "");
+    if (["⚡", "🚀", "◎", "⚙", "⌂", "◴", "🚪"].includes(fallbackText)) return fallbackText;
+    if (type === "speed") return "⚡";
+    if (type === "boost") return "🚀";
+    if (type === "toggle") return "⚡";
+    if (type === "settings") return "⚙";
+    if (type === "system") return "⌂";
+    return "◷";
+  }
+
+  function getTagByType(type) {
+    if (type === "speed") return "SPEED";
+    if (type === "boost") return "BOOST";
+    if (type === "toggle") return "BẬT/TẮT";
+    if (type === "settings") return "CÀI ĐẶT";
+    if (type === "system") return "HỆ THỐNG";
+    return "TÍNH NĂNG";
+  }
+
   function getHistoryItems() {
     try {
       const items = JSON.parse(localStorage.getItem(HISTORY_KEY));
-      return Array.isArray(items) ? items : [];
+      return Array.isArray(items) ? items.map(normalizeHistoryItem) : [];
     } catch {
       return [];
     }
   }
 
   function saveHistoryItems(items) {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 40)));
+    const normalized = items.map(normalizeHistoryItem).slice(0, 80);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(normalized));
   }
 
-  function playTapSound() {
-    const settings = getAppSettings();
-    if (!settings.sound) return;
-
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
-      const oscillator = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      oscillator.type = "sine";
-      oscillator.frequency.value = 720;
-      gain.gain.setValueAtTime(0.035, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-      oscillator.connect(gain);
-      gain.connect(ctx.destination);
-      oscillator.start();
-      oscillator.stop(ctx.currentTime + 0.08);
-    } catch {
-      // Trình duyệt/WebView có thể chặn âm thanh tự động, bỏ qua để app không lỗi.
-    }
+  function sameVietnamDay(timestamp) {
+    const date = new Date(timestamp || Date.now());
+    const now = new Date();
+    return date.toLocaleDateString("vi-VN") === now.toLocaleDateString("vi-VN");
   }
 
-  function vibrateTap() {
-    const settings = getAppSettings();
-    if (settings.vibrate && navigator.vibrate) navigator.vibrate(25);
+  function getFilteredHistoryItems() {
+    const keyword = (historySearchInput?.value || "").trim().toLowerCase();
+    return getHistoryItems().filter((item) => {
+      const matchFilter =
+        currentHistoryFilter === "all" ||
+        item.type === currentHistoryFilter ||
+        (currentHistoryFilter === "feature" && ["speed", "boost"].includes(item.type));
+
+      const matchSearch =
+        !keyword ||
+        item.text.toLowerCase().includes(keyword) ||
+        item.time.toLowerCase().includes(keyword) ||
+        getTagByType(item.type).toLowerCase().includes(keyword);
+
+      return matchFilter && matchSearch;
+    });
   }
 
-  function addHistory(text, icon = "•") {
+  function updateHistoryStats(items) {
+    const total = items.length;
+    const today = items.filter((item) => sameVietnamDay(item.timestamp)).length;
+    const latest = items[0] || null;
+
+    if (historyTotalCount) historyTotalCount.textContent = String(total);
+    if (historyTodayCount) historyTodayCount.textContent = String(today);
+    if (historyLatestTime) historyLatestTime.textContent = latest ? latest.text : "Chưa có";
+  }
+
+  function addHistory(text, type = "feature") {
     const items = getHistoryItems();
     items.unshift({
       text,
-      icon,
-      time: new Date().toLocaleString("vi-VN")
+      type: normalizeHistoryType(type || text),
+      time: new Date().toLocaleTimeString("vi-VN") + " " + new Date().toLocaleDateString("vi-VN"),
+      timestamp: Date.now()
     });
     saveHistoryItems(items);
     renderHistory();
@@ -1291,19 +1369,29 @@ if (document.readyState === "loading") {
 
   function renderHistory() {
     if (!historyList) return;
-    const items = getHistoryItems();
+
+    const allItems = getHistoryItems();
+    const items = getFilteredHistoryItems();
+    updateHistoryStats(allItems);
 
     if (!items.length) {
-      historyList.innerHTML = `<div class="history-empty">Chưa có lịch sử hoạt động.</div>`;
+      historyList.innerHTML = `
+        <div class="history-empty">
+          <strong>Chưa có lịch sử phù hợp.</strong>
+          <span>Hãy thử đổi bộ lọc hoặc tìm từ khóa khác.</span>
+        </div>`;
       return;
     }
 
     historyList.innerHTML = items.map((item) => `
-      <div class="history-item">
-        <div class="history-dot">${escapeHTML(item.icon || "•")}</div>
-        <div>
-          <b>${escapeHTML(item.text || "Hoạt động")}</b>
-          <small>${escapeHTML(item.time || "")}</small>
+      <div class="history-item" data-type="${escapeHTML(item.type)}">
+        <div class="history-dot">${escapeHTML(item.icon)}</div>
+        <div class="history-info">
+          <b>${escapeHTML(item.text)}</b>
+          <div class="history-meta">
+            <small>${escapeHTML(item.time)}</small>
+            <span class="history-tag">${escapeHTML(getTagByType(item.type))}</span>
+          </div>
         </div>
       </div>
     `).join("");
@@ -1327,6 +1415,34 @@ if (document.readyState === "loading") {
     applyCompactMode();
   }
 
+  function playTapSound() {
+    const settings = getAppSettings();
+    if (!settings.sound) return;
+
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = 720;
+      gain.gain.setValueAtTime(0.035, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.08);
+    } catch {
+      // Bỏ qua nếu WebView chặn audio.
+    }
+  }
+
+  function vibrateTap() {
+    const settings = getAppSettings();
+    if (settings.vibrate && navigator.vibrate) navigator.vibrate(25);
+  }
+
   function openTab(tab, shouldLog = true) {
     const targetTab = validTabs.includes(tab) ? tab : "home";
 
@@ -1342,17 +1458,15 @@ if (document.readyState === "loading") {
     });
 
     const settings = getAppSettings();
-    if (settings.saveTab) {
-      localStorage.setItem(ACTIVE_TAB_KEY, targetTab);
-    }
+    if (settings.saveTab) localStorage.setItem(ACTIVE_TAB_KEY, targetTab);
 
     if (targetTab === "history") renderHistory();
     if (targetTab === "settings") renderSettings();
 
     if (shouldLog) {
-      if (targetTab === "history") addHistory("Đã mở mục Lịch sử", "◴");
-      if (targetTab === "settings") addHistory("Đã mở mục Cài đặt", "⚙");
-      if (targetTab === "home") addHistory("Đã quay về Trang chủ", "⌂");
+      if (targetTab === "history") addHistory("Đã mở mục Lịch sử", "system");
+      if (targetTab === "settings") addHistory("Đã mở mục Cài đặt", "settings");
+      if (targetTab === "home") addHistory("Đã quay về Trang chủ", "system");
     }
   }
 
@@ -1381,24 +1495,51 @@ if (document.readyState === "loading") {
         setSpeedEnabled(settings[key], false);
       }
 
-      if (key === "saveTab" && !settings[key]) {
-        localStorage.removeItem(ACTIVE_TAB_KEY);
-      }
+      if (key === "saveTab" && !settings[key]) localStorage.removeItem(ACTIVE_TAB_KEY);
 
       renderSettings();
       playTapSound();
       vibrateTap();
-      addHistory(`Đã ${settings[key] ? "bật" : "tắt"} ${label}`, "⚙");
+      addHistory(`Đã ${settings[key] ? "bật" : "tắt"} ${label}`, "settings");
       if (typeof showToast === "function") showToast(`${settings[key] ? "Đã bật" : "Đã tắt"} ${label}`);
     });
   });
 
-  document.querySelectorAll(".menu-row[data-feature]").forEach((row) => {
-    row.addEventListener("click", () => {
-      const name = row.querySelector("b")?.textContent || "Tính năng";
-      addHistory(`Đã mở ${name}`, "⚡");
+  document.querySelectorAll("[data-history-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentHistoryFilter = button.dataset.historyFilter || "all";
+      document.querySelectorAll("[data-history-filter]").forEach((item) => {
+        item.classList.toggle("active", item === button);
+      });
+      playTapSound();
+      vibrateTap();
+      renderHistory();
     });
   });
+
+  if (historySearchInput) {
+    historySearchInput.addEventListener("input", renderHistory);
+  }
+
+  if (historyExportBtn) {
+    historyExportBtn.addEventListener("click", async () => {
+      const items = getHistoryItems();
+      if (!items.length) {
+        if (typeof showToast === "function") showToast("Chưa có lịch sử để sao chép");
+        return;
+      }
+
+      const text = items.map((item) => `[${item.time}] ${item.text}`).join("\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        if (typeof showToast === "function") showToast("Đã sao chép lịch sử");
+      } catch {
+        if (typeof showToast === "function") showToast("Không thể sao chép trên thiết bị này");
+      }
+      playTapSound();
+      vibrateTap();
+    });
+  }
 
   if (clearHistoryBtn) {
     clearHistoryBtn.addEventListener("click", () => {
@@ -1423,7 +1564,7 @@ if (document.readyState === "loading") {
     settingsLogoutBtn.addEventListener("click", () => {
       playTapSound();
       vibrateTap();
-      addHistory("Đã bấm Đăng xuất trong Cài đặt", "🚪");
+      addHistory("Đã bấm Đăng xuất trong Cài đặt", "settings");
 
       const appLogoutButton = document.getElementById("appLogoutBtn");
       if (appLogoutButton) {
