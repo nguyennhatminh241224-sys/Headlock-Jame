@@ -99,6 +99,60 @@
 
     <section class="simple-menu">
       <button class="menu-row" type="button" data-feature="boost"><span class="menu-icon red">🎯</span><span><b>Boost RAM</b><small>Tối ưu hiệu suất</small></span><span class="switch"></span></button>
+      <section class="modal hidden" id="speedModal" aria-hidden="true">
+  <div class="modal-card speed-card">
+    <button class="close" type="button" id="speedClose">×</button>
+
+    <div class="modal-title">
+      <span>⚡</span>
+      <div>
+        <h3>SPEED</h3>
+        <p>Tối ưu độ mượt và phản hồi trong app</p>
+      </div>
+    </div>
+
+    <div class="speed-status" id="speedStatusBox">
+      <div>
+        <small>Trạng thái hiện tại</small>
+        <b id="speedStatusText">Đang tắt</b>
+      </div>
+      <span id="speedStatusIcon">OFF</span>
+    </div>
+
+    <h4 class="setting-title">Chọn mức SPEED</h4>
+
+    <div class="speed-level-grid">
+      <button class="speed-level active" type="button" data-speed-level="smooth">
+        <b>Êm</b>
+        <small>Mượt, ổn định</small>
+      </button>
+
+      <button class="speed-level" type="button" data-speed-level="fast">
+        <b>Nhanh</b>
+        <small>Phản hồi nhanh hơn</small>
+      </button>
+
+      <button class="speed-level" type="button" data-speed-level="max">
+        <b>Max</b>
+        <small>Ưu tiên tốc độ</small>
+      </button>
+    </div>
+
+    <label class="range-label">
+      <span>Cường độ SPEED</span>
+      <input id="speedRange" type="range" min="1" max="100" value="60">
+    </label>
+
+    <div class="speed-meter">
+      <div id="speedMeterFill"></div>
+    </div>
+
+    <button class="modal-btn success" id="speedOnBtn" type="button">Bật SPEED</button>
+    <button class="modal-btn danger" id="speedOffBtn" type="button">Tắt SPEED</button>
+
+    <p class="license">SPEED chỉ tối ưu hiệu ứng và phản hồi giao diện trong app.</p>
+  </div>
+</section>
       <button class="menu-row" type="button" data-feature="crosshair"><span class="menu-icon blue">◎</span><span><b>Crosshair</b><small>Tùy chỉnh tâm ngắm</small></span><span class="switch"></span></button>
       <button class="menu-row" type="button" data-feature="aimbody"><span class="menu-icon purple">♙</span><span><b>AIMBODY</b><small>Hỗ trợ chế độ ngắm</small></span><span class="switch"></span></button>
       <button class="menu-row" type="button" data-feature="lightaim"><span class="menu-icon orange">✦</span><span><b>NHẸ TÂM</b><small>Giảm giật - giữ ổn định</small></span><span class="switch"></span></button>
