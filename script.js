@@ -86,7 +86,10 @@ const STORAGE = {
   CROSSHAIR_COLOR: "crosshair_color",
   CROSSHAIR_STYLE: "crosshair_style",
   CROSSHAIR_X: "crosshair_x",
-  CROSSHAIR_Y: "crosshair_y"
+  CROSSHAIR_Y: "crosshair_y",
+  SPEED_ENABLED: "headlock_speed_enabled",
+  SPEED_LEVEL: "headlock_speed_level",
+  SPEED_VALUE: "headlock_speed_value"
 };
 
 
@@ -162,6 +165,16 @@ const sensitivityValues = document.getElementById("sensitivityValues");
 const sensitivityDeviceName = document.getElementById("sensitivityDeviceName");
 const sensitivityDeviceInfo = document.getElementById("sensitivityDeviceInfo");
 const sensitivityNote = document.getElementById("sensitivityNote");
+const speedModal = document.getElementById("speedModal");
+const speedClose = document.getElementById("speedClose");
+const speedMenuBtn = document.getElementById("speedMenuBtn");
+const speedStatusBox = document.getElementById("speedStatusBox");
+const speedStatusText = document.getElementById("speedStatusText");
+const speedStatusIcon = document.getElementById("speedStatusIcon");
+const speedRange = document.getElementById("speedRange");
+const speedMeterFill = document.getElementById("speedMeterFill");
+const speedOnBtn = document.getElementById("speedOnBtn");
+const speedOffBtn = document.getElementById("speedOffBtn");
 
 // Nút / thanh chỉnh vị trí tâm ảo
 const crosshairMoveUp = document.getElementById("crosshairMoveUp");
@@ -405,6 +418,7 @@ if (infoGetKeyBtn) infoGetKeyBtn.addEventListener("click", () => window.open(GET
 function closeAll() {
   if (infoPanel) infoPanel.classList.remove("active");
   closeModal(boostModal);
+  closeModal(speedModal);
   closeModal(crosshairModal);
   closeModal(sensitivityModal);
   closeModal(logoutModal);
@@ -434,6 +448,7 @@ function closeModal(modal) {
 
   const hasOpen =
     (boostModal && !boostModal.classList.contains("hidden")) ||
+    (speedModal && !speedModal.classList.contains("hidden")) ||
     (crosshairModal && !crosshairModal.classList.contains("hidden")) ||
     (sensitivityModal && !sensitivityModal.classList.contains("hidden")) ||
     (logoutModal && !logoutModal.classList.contains("hidden")) ||
@@ -445,6 +460,7 @@ function closeModal(modal) {
 document.querySelectorAll("[data-close]").forEach((btn) => {
   btn.addEventListener("click", () => {
     closeModal(boostModal);
+    closeModal(speedModal);
     closeModal(crosshairModal);
     closeModal(sensitivityModal);
     closeModal(logoutModal);
@@ -478,6 +494,13 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
   btn.addEventListener("click", () => {
     const feature = btn.dataset.feature;
 
+    if (feature === "speed") {
+      openModal(speedModal);
+      renderSpeedUI();
+      showToast("Mở SPEED");
+      return;
+    }
+
     if (feature === "crosshair") {
       btn.classList.add("active");
       openModal(crosshairModal);
@@ -510,6 +533,121 @@ document.querySelectorAll(".menu-row").forEach((btn) => {
     showToast(btn.classList.contains("active") ? "Đã bật " + name : "Đã tắt " + name);
   });
 });
+
+
+// ================= SPEED UI OPTIMIZER =================
+
+function addHistorySafe(text, icon = "⚡") {
+  try {
+    if (window.HeadlockHistory && typeof window.HeadlockHistory.add === "function") {
+      window.HeadlockHistory.add(text, icon);
+      return;
+    }
+
+    const key = "headlock_history";
+    const items = JSON.parse(localStorage.getItem(key)) || [];
+    items.unshift({ text, icon, time: new Date().toLocaleString("vi-VN") });
+    localStorage.setItem(key, JSON.stringify(items.slice(0, 40)));
+  } catch (error) {
+    console.warn("Không thể lưu lịch sử:", error);
+  }
+}
+
+function getSpeedEnabled() {
+  return localStorage.getItem(STORAGE.SPEED_ENABLED) === "true";
+}
+
+function getSpeedLevel() {
+  return localStorage.getItem(STORAGE.SPEED_LEVEL) || "smooth";
+}
+
+function getSpeedValue() {
+  const value = parseInt(localStorage.getItem(STORAGE.SPEED_VALUE) || "60", 10);
+  return Number.isFinite(value) ? Math.max(1, Math.min(100, value)) : 60;
+}
+
+function setSpeedLevel(level, shouldLog = true) {
+  const allowed = ["smooth", "fast", "max"];
+  const nextLevel = allowed.includes(level) ? level : "smooth";
+  const nextValue = nextLevel === "smooth" ? 45 : nextLevel === "fast" ? 70 : 95;
+
+  localStorage.setItem(STORAGE.SPEED_LEVEL, nextLevel);
+  localStorage.setItem(STORAGE.SPEED_VALUE, String(nextValue));
+
+  if (speedRange) speedRange.value = nextValue;
+  renderSpeedUI();
+  applySpeedMode();
+
+  if (shouldLog) {
+    const label = document.querySelector(`.speed-level[data-speed-level="${nextLevel}"] b`)?.textContent || nextLevel;
+    addHistorySafe("Đã chọn SPEED: " + label, "⚡");
+  }
+}
+
+function setSpeedEnabled(enabled, shouldLog = true) {
+  localStorage.setItem(STORAGE.SPEED_ENABLED, enabled ? "true" : "false");
+
+  renderSpeedUI();
+  applySpeedMode();
+
+  if (shouldLog) addHistorySafe(enabled ? "Đã bật SPEED" : "Đã tắt SPEED", "⚡");
+  showToast(enabled ? "Đã bật SPEED" : "Đã tắt SPEED");
+}
+
+function applySpeedMode() {
+  const enabled = getSpeedEnabled();
+  const value = getSpeedValue();
+  document.body.classList.toggle("speed-mode", enabled);
+
+  const duration = enabled ? Math.max(0.05, 0.22 - value / 650) : 0.18;
+  document.documentElement.style.setProperty("--speed-duration", duration + "s");
+}
+
+function renderSpeedUI() {
+  const enabled = getSpeedEnabled();
+  const level = getSpeedLevel();
+  const value = getSpeedValue();
+
+  if (speedMenuBtn) speedMenuBtn.classList.toggle("active", enabled);
+  if (speedStatusBox) speedStatusBox.classList.toggle("active", enabled);
+  if (speedStatusText) speedStatusText.textContent = enabled ? "Đang bật" : "Đang tắt";
+  if (speedStatusIcon) speedStatusIcon.textContent = enabled ? "ON" : "OFF";
+  if (speedRange) speedRange.value = value;
+  if (speedMeterFill) speedMeterFill.style.width = value + "%";
+
+  document.querySelectorAll(".speed-level").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.speedLevel === level);
+  });
+
+  const speedDefaultSetting = document.getElementById("speedDefaultSetting");
+  if (speedDefaultSetting) speedDefaultSetting.classList.toggle("active", enabled);
+}
+
+document.querySelectorAll(".speed-level").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setSpeedLevel(btn.dataset.speedLevel);
+    showToast("Đã chọn SPEED: " + (btn.querySelector("b")?.textContent || "SPEED"));
+  });
+});
+
+if (speedRange) {
+  speedRange.addEventListener("input", () => {
+    localStorage.setItem(STORAGE.SPEED_VALUE, speedRange.value);
+    renderSpeedUI();
+    applySpeedMode();
+  });
+
+  speedRange.addEventListener("change", () => {
+    addHistorySafe("Đã chỉnh cường độ SPEED: " + speedRange.value + "%", "⚡");
+  });
+}
+
+if (speedOnBtn) speedOnBtn.addEventListener("click", () => setSpeedEnabled(true));
+if (speedOffBtn) speedOffBtn.addEventListener("click", () => setSpeedEnabled(false));
+if (speedClose) speedClose.addEventListener("click", () => closeModal(speedModal));
+
+renderSpeedUI();
+applySpeedMode();
 
 // ================= REAL ANDROID CROSSHAIR =================
 
@@ -1022,6 +1160,8 @@ async function startHeadlockApp() {
 
   if (!canStart) return;
 
+  renderSpeedUI();
+  applySpeedMode();
   loadCrosshair();
   loadStats();
   startExpireWatcher();
@@ -1034,159 +1174,229 @@ if (document.readyState === "loading") {
 } else {
   startHeadlockApp();
 }
-(function () {
-  const navButtons = document.querySelectorAll("#bottomNav button");
+
+// ================= BOTTOM NAV: HOME / HISTORY / SETTINGS =================
+(function initBottomNavigation() {
+  const bottomNav = document.getElementById("bottomNav");
+  if (!bottomNav) return;
+
+  const navButtons = Array.from(bottomNav.querySelectorAll("button[data-tab]"));
   const historyPage = document.getElementById("historyPage");
   const settingsPage = document.getElementById("settingsPage");
   const historyList = document.getElementById("historyList");
   const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  const refreshHistoryBtn = document.getElementById("refreshHistoryBtn");
   const settingsLogoutBtn = document.getElementById("settingsLogoutBtn");
 
   const homeSections = [
     document.querySelector(".hero-card"),
-    document.querySelector("#statsCard"),
+    document.getElementById("statsCard"),
     document.querySelector(".simple-menu"),
     document.querySelector(".security-box")
   ].filter(Boolean);
 
   const HISTORY_KEY = "headlock_history";
-  const SETTINGS_KEY = "headlock_settings";
+  const APP_SETTINGS_KEY = "headlock_app_settings";
   const ACTIVE_TAB_KEY = "headlock_active_tab";
 
-  function getHistory() {
+  const DEFAULT_SETTINGS = {
+    sound: true,
+    vibrate: true,
+    saveTab: true,
+    compactMode: false,
+    speedDefault: false
+  };
+
+  const validTabs = ["home", "history", "settings"];
+
+  function escapeHTML(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function getAppSettings() {
     try {
-      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+      return { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem(APP_SETTINGS_KEY)) || {}) };
+    } catch {
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function saveAppSettings(settings) {
+    localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify({ ...DEFAULT_SETTINGS, ...settings }));
+  }
+
+  function getHistoryItems() {
+    try {
+      const items = JSON.parse(localStorage.getItem(HISTORY_KEY));
+      return Array.isArray(items) ? items : [];
     } catch {
       return [];
     }
   }
 
-  function saveHistory(items) {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 30)));
+  function saveHistoryItems(items) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 40)));
   }
 
-  function addHistory(text) {
-    const items = getHistory();
+  function playTapSound() {
+    const settings = getAppSettings();
+    if (!settings.sound) return;
 
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = 720;
+      gain.gain.setValueAtTime(0.035, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.08);
+    } catch {
+      // Trình duyệt/WebView có thể chặn âm thanh tự động, bỏ qua để app không lỗi.
+    }
+  }
+
+  function vibrateTap() {
+    const settings = getAppSettings();
+    if (settings.vibrate && navigator.vibrate) navigator.vibrate(25);
+  }
+
+  function addHistory(text, icon = "•") {
+    const items = getHistoryItems();
     items.unshift({
       text,
+      icon,
       time: new Date().toLocaleString("vi-VN")
     });
-
-    saveHistory(items);
+    saveHistoryItems(items);
     renderHistory();
   }
 
+  window.HeadlockHistory = {
+    add: addHistory,
+    render: renderHistory,
+    get: getHistoryItems
+  };
+
   function renderHistory() {
     if (!historyList) return;
-
-    const items = getHistory();
+    const items = getHistoryItems();
 
     if (!items.length) {
       historyList.innerHTML = `<div class="history-empty">Chưa có lịch sử hoạt động.</div>`;
       return;
     }
 
-    historyList.innerHTML = items.map(item => `
+    historyList.innerHTML = items.map((item) => `
       <div class="history-item">
-        <b>${item.text}</b>
-        <small>${item.time}</small>
+        <div class="history-dot">${escapeHTML(item.icon || "•")}</div>
+        <div>
+          <b>${escapeHTML(item.text || "Hoạt động")}</b>
+          <small>${escapeHTML(item.time || "")}</small>
+        </div>
       </div>
     `).join("");
   }
 
-  function getSettings() {
-    try {
-      return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {
-        sound: true,
-        vibrate: true,
-        saveTab: true
-      };
-    } catch {
-      return {
-        sound: true,
-        vibrate: true,
-        saveTab: true
-      };
-    }
-  }
-
-  function saveSettings(settings) {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  function applyCompactMode() {
+    const settings = getAppSettings();
+    document.body.classList.toggle("compact-mode", !!settings.compactMode);
   }
 
   function renderSettings() {
-    const settings = getSettings();
-
-    document.querySelectorAll(".setting-row[data-setting]").forEach(row => {
+    const settings = getAppSettings();
+    document.querySelectorAll(".setting-row[data-setting]").forEach((row) => {
       const key = row.dataset.setting;
-      row.classList.toggle("active", !!settings[key]);
-    });
-  }
-
-  function openTab(tab) {
-    homeSections.forEach(section => {
-      section.style.display = tab === "home" ? "" : "none";
-    });
-
-    if (historyPage) {
-      historyPage.classList.toggle("hidden", tab !== "history");
-    }
-
-    if (settingsPage) {
-      settingsPage.classList.toggle("hidden", tab !== "settings");
-    }
-
-    navButtons.forEach(button => {
-      button.classList.toggle("active", button.dataset.tab === tab);
-    });
-
-    const settings = getSettings();
-    if (settings.saveTab) {
-      localStorage.setItem(ACTIVE_TAB_KEY, tab);
-    }
-
-    if (tab === "history") {
-      renderHistory();
-    }
-
-    if (tab === "settings") {
-      renderSettings();
-    }
-  }
-
-  navButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      const tab = button.dataset.tab;
-      openTab(tab);
-
-      if (tab === "history") addHistory("Đã mở mục Lịch sử");
-      if (tab === "settings") addHistory("Đã mở mục Cài đặt");
-
-      const settings = getSettings();
-      if (settings.vibrate && navigator.vibrate) {
-        navigator.vibrate(25);
+      if (key === "speedDefault" && typeof getSpeedEnabled === "function") {
+        row.classList.toggle("active", getSpeedEnabled());
+      } else {
+        row.classList.toggle("active", !!settings[key]);
       }
     });
-  });
+    applyCompactMode();
+  }
 
-  document.querySelectorAll(".setting-row[data-setting]").forEach(row => {
-    row.addEventListener("click", () => {
-      const key = row.dataset.setting;
-      const settings = getSettings();
+  function openTab(tab, shouldLog = true) {
+    const targetTab = validTabs.includes(tab) ? tab : "home";
 
-      settings[key] = !settings[key];
-      saveSettings(settings);
-      renderSettings();
+    homeSections.forEach((section) => {
+      section.style.display = targetTab === "home" ? "" : "none";
+    });
 
-      addHistory(`Đã ${settings[key] ? "bật" : "tắt"} ${row.querySelector("b").textContent}`);
+    if (historyPage) historyPage.classList.toggle("hidden", targetTab !== "history");
+    if (settingsPage) settingsPage.classList.toggle("hidden", targetTab !== "settings");
+
+    navButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.tab === targetTab);
+    });
+
+    const settings = getAppSettings();
+    if (settings.saveTab) {
+      localStorage.setItem(ACTIVE_TAB_KEY, targetTab);
+    }
+
+    if (targetTab === "history") renderHistory();
+    if (targetTab === "settings") renderSettings();
+
+    if (shouldLog) {
+      if (targetTab === "history") addHistory("Đã mở mục Lịch sử", "◴");
+      if (targetTab === "settings") addHistory("Đã mở mục Cài đặt", "⚙");
+      if (targetTab === "home") addHistory("Đã quay về Trang chủ", "⌂");
+    }
+  }
+
+  navButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      playTapSound();
+      vibrateTap();
+      openTab(button.dataset.tab);
     });
   });
 
-  document.querySelectorAll(".menu-row[data-feature]").forEach(row => {
+  document.querySelectorAll(".setting-row[data-setting]").forEach((row) => {
+    row.addEventListener("click", () => {
+      const key = row.dataset.setting;
+      const label = row.querySelector("b")?.textContent || "Cài đặt";
+      const settings = getAppSettings();
+
+      if (key === "speedDefault" && typeof getSpeedEnabled === "function") {
+        settings[key] = !getSpeedEnabled();
+      } else {
+        settings[key] = !settings[key];
+      }
+      saveAppSettings(settings);
+
+      if (key === "speedDefault" && typeof setSpeedEnabled === "function") {
+        setSpeedEnabled(settings[key], false);
+      }
+
+      if (key === "saveTab" && !settings[key]) {
+        localStorage.removeItem(ACTIVE_TAB_KEY);
+      }
+
+      renderSettings();
+      playTapSound();
+      vibrateTap();
+      addHistory(`Đã ${settings[key] ? "bật" : "tắt"} ${label}`, "⚙");
+      if (typeof showToast === "function") showToast(`${settings[key] ? "Đã bật" : "Đã tắt"} ${label}`);
+    });
+  });
+
+  document.querySelectorAll(".menu-row[data-feature]").forEach((row) => {
     row.addEventListener("click", () => {
       const name = row.querySelector("b")?.textContent || "Tính năng";
-      addHistory(`Đã mở ${name}`);
+      addHistory(`Đã mở ${name}`, "⚡");
     });
   });
 
@@ -1194,23 +1404,37 @@ if (document.readyState === "loading") {
     clearHistoryBtn.addEventListener("click", () => {
       localStorage.removeItem(HISTORY_KEY);
       renderHistory();
+      playTapSound();
+      vibrateTap();
+      if (typeof showToast === "function") showToast("Đã xóa lịch sử");
+    });
+  }
+
+  if (refreshHistoryBtn) {
+    refreshHistoryBtn.addEventListener("click", () => {
+      renderHistory();
+      playTapSound();
+      vibrateTap();
+      if (typeof showToast === "function") showToast("Đã làm mới lịch sử");
     });
   }
 
   if (settingsLogoutBtn) {
     settingsLogoutBtn.addEventListener("click", () => {
-      addHistory("Đã bấm Đăng xuất trong Cài đặt");
+      playTapSound();
+      vibrateTap();
+      addHistory("Đã bấm Đăng xuất trong Cài đặt", "🚪");
 
-      const appLogoutBtn = document.getElementById("appLogoutBtn");
-      if (appLogoutBtn) {
-        appLogoutBtn.click();
-      } else {
-        const logoutModal = document.getElementById("logoutModal");
-        const overlay = document.getElementById("overlay");
-
-        if (logoutModal) logoutModal.classList.remove("hidden");
-        if (overlay) overlay.classList.remove("hidden");
+      const appLogoutButton = document.getElementById("appLogoutBtn");
+      if (appLogoutButton) {
+        appLogoutButton.click();
+        return;
       }
+
+      const logoutModalEl = document.getElementById("logoutModal");
+      const overlayEl = document.getElementById("overlay");
+      if (logoutModalEl) logoutModalEl.classList.remove("hidden");
+      if (overlayEl) overlayEl.classList.remove("hidden");
     });
   }
 
@@ -1218,5 +1442,5 @@ if (document.readyState === "loading") {
   renderSettings();
 
   const savedTab = localStorage.getItem(ACTIVE_TAB_KEY);
-  openTab(savedTab || "home");
+  openTab(savedTab || "home", false);
 })();
