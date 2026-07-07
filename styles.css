@@ -562,3 +562,34 @@ body.speed-mode .setting-row:active{transform:scale(.975)}
   font-weight:950;
   letter-spacing:.2px;
 }
+.info-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:16px;
+    margin-bottom:12px;
+    border-radius:16px;
+    background:#1f1f1f;
+    color:#fff;
+    text-decoration:none;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.info-item:hover{
+    background:#2b2b2b;
+}
+
+.info-item strong{
+    color:#fff;
+}
+
+.info-item p{
+    color:#bdbdbd;
+    margin-top:4px;
+}
+
+.info-item span{
+    color:#FFD54A;
+    font-size:24px;
+}
