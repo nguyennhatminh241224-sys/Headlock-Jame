@@ -5,8 +5,9 @@ const path = require("path");
 const { Pool } = require("pg");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Jame123";
+const PORT = Number(process.env.PORT) || 3000;
+const DATABASE_URL = process.env.DATABASE_URL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const SEED_FILE = path.join(__dirname, "keys-db.json");
 
 app.use(cors());
@@ -29,13 +30,30 @@ const DEFAULT_SETTINGS = {
   updateMessage: "Phiên bản bạn đang dùng đã cũ. Vui lòng tải bản mới để tiếp tục sử dụng."
 };
 
-if (!process.env.DATABASE_URL) {
-  console.warn("WARNING: DATABASE_URL chưa có. Hãy add PostgreSQL trên Railway.");
+if (!DATABASE_URL) {
+  console.warn("WARNING: DATABASE_URL chưa có. Hãy thêm PostgreSQL và DATABASE_URL trên Railway.");
+}
+
+if (!ADMIN_PASSWORD) {
+  console.warn("WARNING: ADMIN_PASSWORD chưa được cấu hình. Các API admin sẽ từ chối đăng nhập.");
 }
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+  connectionString: DATABASE_URL,
+  ssl: DATABASE_URL ? { rejectUnauthorized: false } : false,
+  max: Math.max(1, Number(process.env.PG_POOL_MAX) || 10),
+  idleTimeoutMillis: Math.max(1000, Number(process.env.PG_IDLE_TIMEOUT_MS) || 30000),
+  connectionTimeoutMillis: Math.max(1000, Number(process.env.PG_CONNECTION_TIMEOUT_MS) || 10000),
+  keepAlive: true,
+  allowExitOnIdle: false,
+  application_name: "headlock-key-server"
+});
+
+// Bắt lỗi từ các kết nối PostgreSQL đang rảnh trong pool.
+// Nếu thiếu listener này, lỗi "Connection terminated unexpectedly"
+// có thể trở thành "Unhandled 'error' event" và làm Node.js bị tắt.
+pool.on("error", (error) => {
+  console.error("PostgreSQL pool error:", error.message);
 });
 
 function getEnvText(name, fallback) {
@@ -83,12 +101,8 @@ function requireAdmin(req, res, next) {
 }
 
 async function query(sql, params = []) {
-  const client = await pool.connect();
-  try {
-    return await client.query(sql, params);
-  } finally {
-    client.release();
-  }
+  // pool.query tự lấy và trả kết nối về pool, tránh giữ client thủ công.
+  return pool.query(sql, params);
 }
 
 async function initDB() {
@@ -197,6 +211,26 @@ async function getSettings() {
 
 app.get("/", (req, res) => {
   res.send("HEADLOCK KEY SERVER IS RUNNING WITH POSTGRESQL");
+});
+
+app.get("/health", async (req, res) => {
+  try {
+    await query("SELECT 1");
+    res.json({
+      success: true,
+      server: "online",
+      database: "online",
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      server: "online",
+      database: "offline",
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 app.get("/settings", async (req, res) => {
@@ -469,13 +503,106 @@ app.put("/admin/settings", requireAdmin, async (req, res) => {
   }
 });
 
-initDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log("Server running on port " + PORT);
-    });
-  })
-  .catch((error) => {
-    console.error("Không khởi động được server:", error);
+const STARTUP_RETRY_LIMIT = Math.max(1, Number(process.env.DB_STARTUP_RETRY_LIMIT) || 10);
+const STARTUP_RETRY_DELAY_MS = Math.max(1000, Number(process.env.DB_STARTUP_RETRY_DELAY_MS) || 5000);
+
+let httpServer = null;
+let shuttingDown = false;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function initializeDatabaseWithRetry() {
+  if (!DATABASE_URL) {
+    throw new Error("Thiếu DATABASE_URL.");
+  }
+
+  for (let attempt = 1; attempt <= STARTUP_RETRY_LIMIT; attempt += 1) {
+    try {
+      await initDB();
+      console.log("PostgreSQL initialized successfully.");
+      return;
+    } catch (error) {
+      console.error(
+        `Khởi tạo PostgreSQL thất bại (${attempt}/${STARTUP_RETRY_LIMIT}):`,
+        error.message
+      );
+
+      if (attempt === STARTUP_RETRY_LIMIT) {
+        throw error;
+      }
+
+      await sleep(STARTUP_RETRY_DELAY_MS);
+    }
+  }
+}
+
+async function shutdown(signal, exitCode = 0) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  console.log(`${signal}: đang đóng server an toàn...`);
+
+  const forceExitTimer = setTimeout(() => {
+    console.error("Quá thời gian đóng server. Buộc thoát.");
     process.exit(1);
+  }, 10000);
+  forceExitTimer.unref();
+
+  try {
+    if (httpServer) {
+      await new Promise((resolve, reject) => {
+        httpServer.close((error) => {
+          if (error) reject(error);
+          else resolve();
+        });
+      });
+    }
+
+    await pool.end();
+    clearTimeout(forceExitTimer);
+    console.log("Đã đóng HTTP server và PostgreSQL pool.");
+    process.exit(exitCode);
+  } catch (error) {
+    clearTimeout(forceExitTimer);
+    console.error("Lỗi khi đóng server:", error);
+    process.exit(1);
+  }
+}
+
+process.once("SIGTERM", () => shutdown("SIGTERM"));
+process.once("SIGINT", () => shutdown("SIGINT"));
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+  shutdown("UNCAUGHT_EXCEPTION", 1);
+});
+
+async function startServer() {
+  await initializeDatabaseWithRetry();
+
+  httpServer = app.listen(PORT, () => {
+    console.log("Server running on port " + PORT);
   });
+
+  httpServer.on("error", (error) => {
+    console.error("HTTP server error:", error);
+  });
+}
+
+startServer().catch(async (error) => {
+  console.error("Không khởi động được server:", error);
+
+  try {
+    await pool.end();
+  } catch (closeError) {
+    console.error("Không đóng được PostgreSQL pool:", closeError.message);
+  }
+
+  process.exit(1);
+});
