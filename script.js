@@ -246,16 +246,31 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString("vi-VN");
 }
 
+let checkingKeyRequest = false;
+
 async function checkKeyOnline(key) {
+  if (checkingKeyRequest) {
+    throw new Error("Đang kiểm tra key, vui lòng chờ...");
+  }
+
+  checkingKeyRequest = true;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
   const res = await fetch(API_BASE + "/check-key", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal: controller.signal,
     body: JSON.stringify({
       key,
       deviceId: getDeviceId(),
       deviceName: navigator.userAgent || "Android Device"
     })
   });
+
+  clearTimeout(timeout);
+  checkingKeyRequest = false;
 
   if (!res.ok) throw new Error("Không kết nối được server.");
   return await res.json();
