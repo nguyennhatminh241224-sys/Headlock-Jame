@@ -11,7 +11,30 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const SEED_FILE = path.join(__dirname, "keys-db.json");
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+// Increase request size limit and handle aborted requests safely
+app.use(express.json({
+  limit: "10mb"
+}));
+
+app.use(express.urlencoded({
+  extended: true,
+  limit: "10mb"
+}));
+
+// Debug and prevent silent crashes when client disconnects
+app.use((req, res, next) => {
+  req.on("aborted", () => {
+    console.warn("REQUEST ABORTED:", req.method, req.originalUrl);
+  });
+
+  req.on("close", () => {
+    if (!res.writableEnded) {
+      console.warn("REQUEST CLOSED EARLY:", req.method, req.originalUrl);
+    }
+  });
+
+  next();
+});
 app.use(express.static(__dirname));
 
 const DEFAULT_SETTINGS = {
