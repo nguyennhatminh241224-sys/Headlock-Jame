@@ -11,30 +11,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 const SEED_FILE = path.join(__dirname, "keys-db.json");
 
 app.use(cors());
-// Increase request size limit and handle aborted requests safely
-app.use(express.json({
-  limit: "10mb"
-}));
-
-app.use(express.urlencoded({
-  extended: true,
-  limit: "10mb"
-}));
-
-// Debug and prevent silent crashes when client disconnects
-app.use((req, res, next) => {
-  req.on("aborted", () => {
-    console.warn("REQUEST ABORTED:", req.method, req.originalUrl);
-  });
-
-  req.on("close", () => {
-    if (!res.writableEnded) {
-      console.warn("REQUEST CLOSED EARLY:", req.method, req.originalUrl);
-    }
-  });
-
-  next();
-});
+app.use(express.json({ limit: "1mb" }));
 app.use(express.static(__dirname));
 
 const DEFAULT_SETTINGS = {
@@ -322,8 +299,20 @@ app.get("/stats", async (req, res) => {
   }
 });
 
+
+// Prevent long database/API waits from leaving clients hanging
+const checkKeyTimeout = (ms) => {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error("CHECK_KEY_TIMEOUT"));
+    }, ms);
+  });
+};
+
 app.post("/check-key", async (req, res) => {
   try {
+    res.setTimeout(20000);
+
     const { key, deviceId, deviceName } = req.body;
 
     if (!key || !deviceId) {
@@ -388,7 +377,17 @@ app.post("/check-key", async (req, res) => {
       type: keyData.type || "custom"
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Lỗi server kiểm tra key.", error: error.message });
+    console.error("CHECK-KEY ERROR:", error.message);
+
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: error.message === "CHECK_KEY_TIMEOUT"
+          ? "Server phản hồi quá lâu, vui lòng thử lại."
+          : "Lỗi server kiểm tra key.",
+        error: error.message
+      });
+    }
   }
 });
 
