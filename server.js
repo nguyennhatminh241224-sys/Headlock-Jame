@@ -20,11 +20,25 @@ app.use(express.urlencoded({
   limit: "10mb"
 }));
 
-// Detect clients that close connection early
+// Railway/browser clients may close a request when a tab or Android WebView
+// goes to the background. This is usually harmless. Keep this diagnostic
+// disabled by default so normal disconnects do not appear as red deploy errors.
 app.use((req, res, next) => {
-  req.on("aborted", () => {
-    console.warn("REQUEST ABORTED:", req.method, req.originalUrl);
-  });
+  if (process.env.LOG_ABORTED_REQUESTS === "true") {
+    const startedAt = Date.now();
+
+    res.on("close", () => {
+      if (!res.writableEnded) {
+        console.warn(
+          "CLIENT DISCONNECTED EARLY:",
+          req.method,
+          req.originalUrl,
+          `${Date.now() - startedAt}ms`
+        );
+      }
+    });
+  }
+
   next();
 });
 app.use(express.static(__dirname));
@@ -59,6 +73,8 @@ const pool = new Pool({
   max: Math.max(1, Number(process.env.PG_POOL_MAX) || 10),
   idleTimeoutMillis: Math.max(1000, Number(process.env.PG_IDLE_TIMEOUT_MS) || 30000),
   connectionTimeoutMillis: Math.max(1000, Number(process.env.PG_CONNECTION_TIMEOUT_MS) || 10000),
+  query_timeout: Math.max(1000, Number(process.env.PG_QUERY_TIMEOUT_MS) || 15000),
+  statement_timeout: Math.max(1000, Number(process.env.PG_STATEMENT_TIMEOUT_MS) || 15000),
   keepAlive: true,
   allowExitOnIdle: false,
   application_name: "headlock-key-server"
@@ -159,6 +175,12 @@ async function initDB() {
      ON CONFLICT (id) DO NOTHING`,
     [JSON.stringify(DEFAULT_SETTINGS)]
   );
+
+  // Speed up the dashboard queries as the key/device tables grow.
+  await query("CREATE INDEX IF NOT EXISTS idx_license_keys_active ON license_keys (revoked, expires_at)");
+  await query("CREATE INDEX IF NOT EXISTS idx_key_devices_first_used_at ON key_devices (first_used_at)");
+  await query("CREATE INDEX IF NOT EXISTS idx_key_devices_last_used_at ON key_devices (last_used_at)");
+  await query("CREATE INDEX IF NOT EXISTS idx_key_devices_key_text ON key_devices (key_text)");
 
   await seedFromJsonIfEmpty();
 }
@@ -273,44 +295,42 @@ app.get("/settings", async (req, res) => {
 
 app.get("/stats", async (req, res) => {
   try {
+    // One round-trip instead of four sequential database queries.
+    const result = await query(`
+      SELECT
+        (SELECT COUNT(*)::int
+         FROM license_keys
+         WHERE revoked = FALSE
+           AND (expires_at IS NULL OR expires_at > NOW())) AS active_keys,
+        (SELECT COUNT(*)::int FROM key_devices) AS total_devices,
+        (SELECT COUNT(*)::int
+         FROM key_devices
+         WHERE first_used_at >= CURRENT_DATE
+           AND first_used_at < CURRENT_DATE + INTERVAL '1 day') AS today,
+        (SELECT COUNT(DISTINCT device_id)::int
+         FROM key_devices
+         WHERE last_used_at >= NOW() - INTERVAL '10 minutes') AS online
+    `);
+
+    const stats = result.rows[0] || {};
     const now = new Date();
-    const todayKey = now.toISOString().slice(0, 10);
-    const onlineWindowMs = 10 * 60 * 1000;
 
-    const active = await query(
-      `SELECT COUNT(*)::int AS total
-       FROM license_keys
-       WHERE revoked = FALSE AND (expires_at IS NULL OR expires_at > NOW())`
-    );
-
-    const totalDevices = await query("SELECT COUNT(*)::int AS total FROM key_devices");
-
-    const today = await query(
-      `SELECT COUNT(*)::int AS total
-       FROM key_devices
-       WHERE first_used_at::date = $1::date`,
-      [todayKey]
-    );
-
-    const online = await query(
-      `SELECT COUNT(DISTINCT device_id)::int AS total
-       FROM key_devices
-       WHERE last_used_at >= NOW() - ($1 || ' milliseconds')::interval`,
-      [onlineWindowMs]
-    );
-
+    res.set("Cache-Control", "no-store");
     res.json({
       success: true,
-      online: online.rows[0].total,
-      activeKeys: active.rows[0].total,
-      today: today.rows[0].total,
-      totalDevices: totalDevices.rows[0].total,
+      online: stats.online || 0,
+      activeKeys: stats.active_keys || 0,
+      today: stats.today || 0,
+      totalDevices: stats.total_devices || 0,
       server: "Online",
       railway: "Online",
       updatedAt: now.toISOString()
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Lỗi thống kê.", error: error.message });
+    console.error("STATS ERROR:", error.message);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "Lỗi thống kê.", error: error.message });
+    }
   }
 });
 

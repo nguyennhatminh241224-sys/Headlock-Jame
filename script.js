@@ -1,5 +1,8 @@
 // ================= HEADLOCK JAME CONFIG =================
-const API_BASE = "https://headlock-jame-production.up.railway.app";
+const RAILWAY_API_BASE = "https://headlock-jame-production.up.railway.app";
+const API_BASE = (location.protocol === "http:" || location.protocol === "https:")
+  ? location.origin
+  : RAILWAY_API_BASE;
 function showMaintenanceScreen(title, message) {
   document.body.innerHTML = `
     <div style="position:fixed;inset:0;z-index:999999;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
@@ -1185,8 +1188,28 @@ if (refreshStatsBtn) {
   });
 }
 
-setInterval(loadStats, 30000);
+let statsPollTimer = null;
+let statsRequestInFlight = false;
 
+async function loadStatsSafely() {
+  if (document.hidden || statsRequestInFlight) return;
+
+  statsRequestInFlight = true;
+  try {
+    await loadStats();
+  } finally {
+    statsRequestInFlight = false;
+  }
+}
+
+function startStatsPolling() {
+  if (statsPollTimer) return;
+  statsPollTimer = setInterval(loadStatsSafely, 30000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadStatsSafely();
+  });
+}
 
 
 async function startHeadlockApp() {
@@ -1197,7 +1220,8 @@ async function startHeadlockApp() {
   renderSpeedUI();
   applySpeedMode();
   loadCrosshair();
-  loadStats();
+  loadStatsSafely();
+  startStatsPolling();
   startExpireWatcher();
   autoLogin();
 }
