@@ -1,8 +1,7 @@
 // ================= HEADLOCK JAME CONFIG =================
-const RAILWAY_API_BASE = "https://headlock-jame-production.up.railway.app";
-const API_BASE = (location.protocol === "http:" || location.protocol === "https:")
-  ? location.origin
-  : RAILWAY_API_BASE;
+// API luôn trỏ về Railway. Android WebView có thể dùng URL nội bộ dạng
+// https://appassets.androidplatform.net, vì vậy không được dùng location.origin.
+const API_BASE = "https://headlock-jame-production.up.railway.app";
 function showMaintenanceScreen(title, message) {
   document.body.innerHTML = `
     <div style="position:fixed;inset:0;z-index:999999;display:flex;justify-content:center;align-items:center;background:#07090f;color:white;font-family:Arial,sans-serif;text-align:center;padding:20px;">
