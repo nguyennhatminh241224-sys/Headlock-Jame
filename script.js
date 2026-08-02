@@ -333,20 +333,37 @@ async function loginWithValue(value) {
 async function autoLogin() {
   const savedKey = localStorage.getItem(STORAGE.KEY);
   const savedSession = localStorage.getItem(STORAGE.SESSION) === "true";
+
   if (!savedKey) return;
 
-  // Phiên đã được xác thực trước đó được giữ cho tới khi người dùng chủ động đăng xuất.
-  // Không ép kiểm tra mạng khi mở lại app để tránh WebView tự quay về màn hình key.
-  if (savedSession) {
-    unlockApp("Đã khôi phục phiên đăng nhập");
-    return;
-  }
+  // Khôi phục giao diện ngay khi Android tạo lại WebView. Không bắt người dùng
+  // nhập key lại chỉ vì app vừa quay về từ game hoặc mạng đang tạm gián đoạn.
+  unlockApp(savedSession ? "Đã khôi phục phiên đăng nhập" : "Đang xác minh key...");
 
   try {
-    await loginWithValue(savedKey);
+    const result = await checkKeyOnline(savedKey);
+
+    if (result && result.success) {
+      const slotText = result.slotUsed && result.slotMax
+        ? ` | Slot: ${result.slotUsed}/${result.slotMax}`
+        : "";
+
+      if (licenseText) {
+        licenseText.textContent = "Key hết hạn: " + formatDate(result.expiresAt) + slotText;
+      }
+      return;
+    }
+
+    // Server đã phản hồi rõ ràng rằng key không còn hợp lệ.
+    const reason = (result && result.message) || "Key đã hết hạn hoặc bị thu hồi.";
+    lockApp({ clearSavedKey: true });
+    setLoginMessage("err", reason);
   } catch (error) {
-    // Không xóa key hoặc đóng app khi server/mạng tạm thời lỗi.
-    setLoginMessage("err", error.message || "Chưa thể kiểm tra key. Vui lòng thử lại khi có mạng.");
+    // Mất mạng hoặc server tạm lỗi: giữ nguyên phiên đã khôi phục.
+    console.warn("Không thể xác minh key khi khôi phục phiên:", error);
+    if (licenseText) {
+      licenseText.textContent = "Mất kết nối server — phiên hiện tại vẫn được giữ.";
+    }
   }
 }
 
