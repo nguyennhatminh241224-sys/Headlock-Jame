@@ -256,26 +256,32 @@ async function checkKeyOnline(key) {
   }
 
   checkingKeyRequest = true;
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
 
-  const res = await fetch(API_BASE + "/check-key", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    signal: controller.signal,
-    body: JSON.stringify({
-      key,
-      deviceId: getDeviceId(),
-      deviceName: navigator.userAgent || "Android Device"
-    })
-  });
+  try {
+    const res = await fetch(API_BASE + "/check-key", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        key,
+        deviceId: getDeviceId(),
+        deviceName: navigator.userAgent || "Android Device"
+      })
+    });
 
-  clearTimeout(timeout);
-  checkingKeyRequest = false;
-
-  if (!res.ok) throw new Error("Không kết nối được server.");
-  return await res.json();
+    if (!res.ok) throw new Error("Không kết nối được server.");
+    return await res.json();
+  } catch (error) {
+    if (error && error.name === "AbortError") {
+      throw new Error("Server phản hồi quá lâu.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+    checkingKeyRequest = false;
+  }
 }
 
 function unlockApp(message = "Đã mở khóa") {
@@ -285,7 +291,7 @@ function unlockApp(message = "Đã mở khóa") {
   if (logoutBtn) logoutBtn.classList.remove("hidden");
   if (licenseText) licenseText.textContent = message;
 
-  sessionStorage.setItem(STORAGE.SESSION, "true");
+  localStorage.setItem(STORAGE.SESSION, "true");
   setLoginMessage("ok", message);
   showToast(message);
 }
@@ -299,7 +305,7 @@ function lockApp(options = {}) {
   if (logoutBtn) logoutBtn.classList.add("hidden");
   if (passwordInput) passwordInput.value = "";
 
-  sessionStorage.removeItem(STORAGE.SESSION);
+  localStorage.removeItem(STORAGE.SESSION);
 
   // Không xóa key đã lưu khi app tự khóa do reload/mất mạng.
   // Chỉ xóa khi người dùng bấm Đăng xuất hoặc key thật sự không còn hợp lệ.
@@ -326,34 +332,66 @@ async function loginWithValue(value) {
 
 async function autoLogin() {
   const savedKey = localStorage.getItem(STORAGE.KEY);
+  const savedSession = localStorage.getItem(STORAGE.SESSION) === "true";
   if (!savedKey) return;
+
+  // Phiên đã được xác thực trước đó được giữ cho tới khi người dùng chủ động đăng xuất.
+  // Không ép kiểm tra mạng khi mở lại app để tránh WebView tự quay về màn hình key.
+  if (savedSession) {
+    unlockApp("Đã khôi phục phiên đăng nhập");
+    return;
+  }
 
   try {
     await loginWithValue(savedKey);
   } catch (error) {
-    sessionStorage.removeItem(STORAGE.SESSION);
-    setLoginMessage("err", error.message || "Key đã lưu không còn hợp lệ.");
+    // Không xóa key hoặc đóng app khi server/mạng tạm thời lỗi.
+    setLoginMessage("err", error.message || "Chưa thể kiểm tra key. Vui lòng thử lại khi có mạng.");
   }
 }
 
 function startExpireWatcher() {
-  setInterval(async () => {
+  const CHECK_INTERVAL_MS = 60000;
+
+  const verifyCurrentKey = async () => {
     const savedKey = localStorage.getItem(STORAGE.KEY);
-    if (!savedKey || sessionStorage.getItem(STORAGE.SESSION) !== "true") return;
+    const hasSession = localStorage.getItem(STORAGE.SESSION) === "true";
+
+    if (!savedKey || !hasSession) return;
 
     try {
       const result = await checkKeyOnline(savedKey);
-      if (!result.success) {
-        lockApp({ clearSavedKey: true });
-        setLoginMessage("err", result.message || "Key không còn hợp lệ.");
+
+      if (result && result.success) {
+        const slotText = result.slotUsed && result.slotMax
+          ? ` | Slot: ${result.slotUsed}/${result.slotMax}`
+          : "";
+
+        if (licenseText) {
+          licenseText.textContent = "Key hết hạn: " + formatDate(result.expiresAt) + slotText;
+        }
+        return;
       }
-    } catch {
-      // Mất mạng/server lỗi tạm thời: khóa màn hình nhưng vẫn giữ key để lần sau tự đăng nhập lại.
-      lockApp({ clearSavedKey: false });
-      setLoginMessage("err", "Không kết nối được server kiểm tra key.");
+
+      // Chỉ khóa khi server trả lời rõ ràng rằng key không còn hợp lệ,
+      // đã hết hạn, bị thu hồi hoặc vượt quá giới hạn thiết bị/slot.
+      const reason = (result && result.message) || "Key đã hết hạn hoặc bị thu hồi.";
+      lockApp({ clearSavedKey: true });
+      setLoginMessage("err", reason);
+    } catch (error) {
+      // Lỗi mạng, timeout hoặc server tạm thời không phản hồi không được đăng xuất người dùng.
+      console.warn("Không thể kiểm tra lại key:", error);
+      if (licenseText) {
+        licenseText.textContent = "Mất kết nối server — phiên hiện tại vẫn được giữ.";
+      }
     }
-  }, 60000);
+  };
+
+  // Kiểm tra ngay sau khi app khởi động, rồi kiểm tra lại mỗi 60 giây.
+  verifyCurrentKey();
+  window.headlockExpireWatcher = setInterval(verifyCurrentKey, CHECK_INTERVAL_MS);
 }
+
 
 if (passwordForm) {
   passwordForm.addEventListener("submit", async (event) => {
@@ -416,7 +454,7 @@ if (sensitivityClose) {
 if (logoutConfirm) {
   logoutConfirm.addEventListener("click", () => {
     localStorage.removeItem(STORAGE.KEY);
-    sessionStorage.removeItem(STORAGE.SESSION);
+    localStorage.removeItem(STORAGE.SESSION);
 
     closeModal(logoutModal);
     if (infoPanel) infoPanel.classList.remove("active");
