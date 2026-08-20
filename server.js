@@ -20,6 +20,23 @@ app.use(express.urlencoded({
   limit: "10mb"
 }));
 
+// Handle malformed/incomplete request bodies without printing a full raw-body
+// stack trace for clients that close the connection early.
+app.use((error, req, res, next) => {
+  if (error?.type === "request.aborted" || error?.code === "ECONNABORTED") {
+    return;
+  }
+
+  if (error instanceof SyntaxError && Object.prototype.hasOwnProperty.call(error, "body")) {
+    return res.status(400).json({
+      success: false,
+      message: "Dữ liệu gửi lên không hợp lệ."
+    });
+  }
+
+  next(error);
+});
+
 // Railway/browser clients may close a request when a tab or Android WebView
 // goes to the background. This is usually harmless. Keep this diagnostic
 // disabled by default so normal disconnects do not appear as red deploy errors.
@@ -335,6 +352,8 @@ app.get("/stats", async (req, res) => {
 });
 
 app.post("/check-key", async (req, res) => {
+  let txClient = null;
+
   try {
     // Prevent hanging requests
     res.setTimeout(15000, () => {
@@ -367,7 +386,14 @@ app.post("/check-key", async (req, res) => {
     }
 
     const maxDevices = Number(keyData.max_devices || 1);
-    const deviceResult = await query(
+
+    // Serialize activations for the same key. This prevents two simultaneous
+    // requests from both passing the device-limit check.
+    txClient = await pool.connect();
+    await txClient.query("BEGIN");
+    await txClient.query("SELECT pg_advisory_xact_lock(hashtext($1))", [key]);
+
+    const deviceResult = await txClient.query(
       "SELECT * FROM key_devices WHERE key_text = $1 AND device_id = $2",
       [key, deviceId]
     );
@@ -375,22 +401,27 @@ app.post("/check-key", async (req, res) => {
     let device = deviceResult.rows[0];
 
     if (!device) {
-      const countResult = await query(
+      const countResult = await txClient.query(
         "SELECT COUNT(*)::int AS total FROM key_devices WHERE key_text = $1",
         [key]
       );
 
       if (countResult.rows[0].total >= maxDevices) {
+        await txClient.query("ROLLBACK");
+        txClient.release();
+        txClient = null;
         return res.json({ success: false, message: `Key đã đạt giới hạn ${maxDevices} thiết bị.` });
       }
 
-      await query(
+      await txClient.query(
         `INSERT INTO key_devices (key_text, device_id, device_name, first_used_at, last_used_at)
-         VALUES ($1, $2, $3, NOW(), NOW())`,
+         VALUES ($1, $2, $3, NOW(), NOW())
+         ON CONFLICT (key_text, device_id)
+         DO UPDATE SET device_name = EXCLUDED.device_name, last_used_at = NOW()`,
         [key, deviceId, deviceName || "Android Device"]
       );
     } else {
-      await query(
+      await txClient.query(
         `UPDATE key_devices
          SET device_name = $3, last_used_at = NOW()
          WHERE key_text = $1 AND device_id = $2`,
@@ -398,7 +429,14 @@ app.post("/check-key", async (req, res) => {
       );
     }
 
-    const slot = await query("SELECT COUNT(*)::int AS total FROM key_devices WHERE key_text = $1", [key]);
+    const slot = await txClient.query(
+      "SELECT COUNT(*)::int AS total FROM key_devices WHERE key_text = $1",
+      [key]
+    );
+
+    await txClient.query("COMMIT");
+    txClient.release();
+    txClient = null;
 
     res.json({
       success: true,
@@ -409,6 +447,17 @@ app.post("/check-key", async (req, res) => {
       type: keyData.type || "custom"
     });
   } catch (error) {
+    if (txClient) {
+      try {
+        await txClient.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("CHECK-KEY ROLLBACK ERROR:", rollbackError.message);
+      } finally {
+        txClient.release();
+        txClient = null;
+      }
+    }
+
     console.error("CHECK-KEY ERROR:", error.message);
 
     if (!res.headersSent) {
