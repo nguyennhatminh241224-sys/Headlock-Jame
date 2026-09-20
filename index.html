@@ -1,3 +1,4 @@
+```
 <!doctype html>
 <html lang="vi">
 <head>
@@ -5,6 +6,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
   <title>Headlock Jame</title>
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    try {
+      if (new URLSearchParams(location.search).get("overlay") === "1") {
+        document.documentElement.classList.add("floating-overlay");
+      }
+    } catch (_) {}
+  </script>
 </head>
 <body>
   <div class="bg-glow bg-gold"></div>
@@ -98,12 +106,13 @@
     </section>
 
     <section class="simple-menu">
+      <button class="menu-row" type="button" data-feature="floating"><span class="menu-icon yellow">◉</span><span><b>Menu nổi</b><small>Hiển thị bảng điều khiển trên ứng dụng khác</small></span><span class="arrow">›</span></button>
       <button class="menu-row" type="button" data-feature="boost"><span class="menu-icon red">🎯</span><span><b>Boost RAM</b><small>Tối ưu hiệu suất</small></span><span class="switch"></span></button>
-      <button class="menu-row" type="button" data-feature="speed" id="speedMenuBtn"><span class="menu-icon yellow">⚡</span><span><b>SPEED</b><small>Tăng tốc phản hồi - tối ưu chuyển động app</small></span><span class="switch"></span></button>
+      <button class="menu-row" type="button" data-feature="speed" id="speedMenuBtn"><span class="menu-icon yellow">⚡</span><span><b>SPEED</b><small>Tăng tốc phản hồi - tối ưu chuyển động FF</small></span><span class="switch"></span></button>
       <button class="menu-row" type="button" data-feature="crosshair"><span class="menu-icon blue">◎</span><span><b>Crosshair</b><small>Tùy chỉnh tâm ngắm</small></span><span class="switch"></span></button>
       <button class="menu-row" type="button" data-feature="aimbody"><span class="menu-icon purple">♙</span><span><b>AIMBODY</b><small>Hỗ trợ chế độ ngắm</small></span><span class="switch"></span></button>
       <button class="menu-row" type="button" data-feature="lightaim"><span class="menu-icon orange">✦</span><span><b>NHẸ TÂM</b><small>Giảm giật - giữ ổn định</small></span><span class="switch"></span></button>
-      <button class="menu-row" type="button" data-feature="sensitivity"><span class="menu-icon teal">⌾</span><span><b>Độ nhạy OB54</b><small>Lấy độ nhạy cho mọi dòng máy</small></span><span class="arrow">›</span></button>
+      <button class="menu-row" type="button" data-feature="sensitivity"><span class="menu-icon teal">⌾</span><span><b>Độ nhạy OB55</b><small>Lấy độ nhạy cho mọi dòng máy</small></span><span class="arrow">›</span></button>
       <button class="menu-row" type="button" data-feature="info"><span class="menu-icon gray">ⓘ</span><span><b>Thông Tin</b><small>Hướng dẫn sử dụng</small></span><span class="arrow">›</span></button>
     </section>
 
@@ -235,52 +244,16 @@
     </nav>
   </main>
 
- <aside class="info-panel" id="infoPanel">
-    <div class="info-head">
-        <h2>Thông Tin</h2>
-        <button id="closeInfo" type="button">Done</button>
-    </div>
+  <aside class="info-panel" id="infoPanel">
+    <div class="info-head"><h2>Thông Tin</h2><button id="closeInfo" type="button">Done</button></div>
+    <div class="info-item"><div><strong>Mua KEY Liên Hệ Jame FF</strong><p>Zalo 0333635135</p></div><span>☎</span></div>
+    <div class="info-item"><div><strong>FaceBook</strong><p>Jame FF</p></div><span>f</span></div>
+    <div class="info-item"><div><strong>TikTok</strong><p>https://www.tiktok.com/@jame.ff.11</p></div><span>♪</span></div>
+    <button class="full-btn" id="infoGetKeyBtn" type="button">Get Key Free</button>
 
-    <!-- Zalo -->
-    <a class="info-item" href="https://zalo.me/0333635135" target="_blank" rel="noopener">
-        <div>
-            <strong>Mua KEY Liên Hệ Jame FF</strong>
-            <p>Zalo 0333635135</p>
-        </div>
-        <span>☎</span>
-    </a>
-
-    <!-- Facebook -->
-    <a class="info-item" href="https://www.facebook.com/" target="_blank" rel="noopener">
-        <div>
-            <strong>FaceBook</strong>
-            <p>Jame FF</p>
-        </div>
-        <span>f</span>
-    </a>
-
-    <!-- TikTok -->
-    <a class="info-item" href="https://www.tiktok.com/@jame.ff.11" target="_blank" rel="noopener">
-        <div>
-            <strong>TikTok</strong>
-            <p>https://www.tiktok.com/@jame.ff.11</p>
-        </div>
-        <span>♪</span>
-    </a>
-
-    <button class="full-btn" id="infoGetKeyBtn" type="button">
-        Get Key Free
-    </button>
-
-    <button class="full-btn logout-btn" id="appLogoutBtn" type="button">
-        🚪 Đăng xuất App
-    </button>
-
-    <div class="copyright">
-        <strong>Copyright belongs to Jame FF</strong>
-        <p>Thank For Using</p>
-    </div>
-</aside>
+    <button class="full-btn logout-btn" id="appLogoutBtn" type="button">🚪 Đăng xuất App</button>
+    <div class="copyright"><strong>Copyright belongs to Jame FF</strong><p>Thank For Using</p></div>
+  </aside>
 
   <section class="modal hidden" id="boostModal" aria-hidden="true">
     <div class="modal-card terminal-card">
@@ -299,7 +272,7 @@
         <span>⚡</span>
         <div>
           <h3>SPEED</h3>
-          <p>Tối ưu độ mượt và phản hồi giao diện trong app</p>
+          <p>Tối ưu độ mượt và phản hồi giao diện trong FF</p>
         </div>
       </div>
 
@@ -323,7 +296,7 @@
 
       <button class="modal-btn success" id="speedOnBtn" type="button">Bật SPEED</button>
       <button class="modal-btn danger" id="speedOffBtn" type="button">Tắt SPEED</button>
-      <p class="license">SPEED chỉ tối ưu hiệu ứng và phản hồi giao diện trong app.</p>
+      <p class="license">SPEED chỉ tối ưu hiệu ứng và phản hồi giao diện trong FF.</p>
     </div>
   </section>
 
@@ -377,7 +350,7 @@
       <div class="modal-title sensitivity-title">
         <span>⌾</span>
         <div>
-          <h3>Độ nhạy OB54</h3>
+          <h3>Độ nhạy OB55</h3>
           <p>Gợi ý độ nhạy Free Fire theo từng dòng máy</p>
         </div>
       </div>
@@ -386,9 +359,9 @@
         <div>
           <small>Thiết bị đang chọn</small>
           <b id="sensitivityDeviceName">Samsung Galaxy A55 5G</b>
-          <p id="sensitivityDeviceInfo">Android • Tầm trung • OB54</p>
+          <p id="sensitivityDeviceInfo">Android • Tầm trung • OB55</p>
         </div>
-        <span>OB54</span>
+        <span>OB55</span>
       </div>
 
       <h4 class="setting-title">1. Chọn hãng</h4>
@@ -430,3 +403,5 @@
   <script src="script.js"></script>
 </body>
 </html>
+
+```
